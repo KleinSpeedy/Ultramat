@@ -1,35 +1,68 @@
 #include <gtk/gtk.h>
 
-static void print_hello(GtkWidget *widget, gpointer data)
-{
-    g_print("Hello World\n");
-}
+void css_set(GtkCssProvider *prov, GtkWidget *widg);
 
-static void activate(GtkApplication *app, gpointer user_data)
-{
-    GtkWidget *window;
-    GtkWidget *button;
+void on_Btn_Home_clicked(GtkButton* btn);
 
-    window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), "Window");
-    gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
+// Make them global
 
-    button = gtk_button_new_with_label("Hello World");
-    g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-    gtk_window_set_child(GTK_WINDOW(window), button);
-
-    gtk_window_present(GTK_WINDOW(window));
-}
+GtkBuilder *builder;
+GtkWidget *window;
+GtkWidget *frame1;
+GtkWidget *label_home;
 
 int main(int argc, char **argv)
 {
-    GtkApplication *app;
-    int status;
 
-    app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
-    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-    status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
+    GError *error = NULL;
+    GError *error_css = NULL;
 
-    return status;
+    GtkCssProvider *css_provider;
+    css_provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_path(css_provider, "./style.css", NULL);
+
+    // css_set(css_provider, frame1);
+
+    gtk_init(&argc, &argv);
+
+    builder = gtk_builder_new();
+
+    if (gtk_builder_add_from_file(builder, "./res/ultramat.ui", &error) == 0)
+    {
+        g_print("Error loading ui-file: ", error->message);
+        g_clear_error(&error);
+
+        return 1;
+    }
+
+    gtk_builder_connect_signals(builder, NULL);
+
+    /* get Window from UI File and connect Exit-Button */
+    window = GTK_WIDGET(gtk_builder_get_object(builder, "Main_Window"));
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+    label_home = GTK_WIDGET(gtk_builder_get_object(builder, "Label_Home"));
+
+    gtk_style_context_add_provider_for_screen(
+        gdk_screen_get_default(),
+        GTK_STYLE_PROVIDER(css_provider),
+        GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+    gtk_widget_show_all(GTK_WIDGET(window));
+
+    gtk_main();
+
+    return 0;
+}
+
+void css_set(GtkCssProvider *cssProvider, GtkWidget *g_widget)
+{
+    GtkStyleContext *context = gtk_widget_get_style_context(g_widget);
+
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+}
+
+void on_Btn_Home_clicked(GtkButton* b)
+{
+    gtk_label_set_text(GTK_LABEL(label_home), (const gchar*) "Button clicked!");
 }
