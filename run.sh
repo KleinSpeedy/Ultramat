@@ -1,0 +1,2 @@
+# run programm
+./build/ultramat
