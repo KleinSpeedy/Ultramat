@@ -1,13 +1,15 @@
 /* Test File */
-button {
-    background-color: gray;
-}
 
 label {
     font-size: larger;
-    color: blue;
+    color: rgb(47, 130, 157);
 }
 
-stack {
-    background-color: gray;
+stack, window {
+    background-color: mintcream;
+}
+
+switch {
+    color: black;
+    font-size: larger;
 }
