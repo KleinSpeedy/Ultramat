@@ -1,0 +1,3 @@
+[submodule "ext/c-periphery"]
+	path = ext/c-periphery
+	url = https://github.com/vsergeev/c-periphery.git
