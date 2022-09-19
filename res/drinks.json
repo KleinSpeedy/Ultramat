@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Vodka-O",
+        "items": [
+            "Vodka",
+            "Orangen-Saft"
+        ],
+        "available": false
+    },
+    {
+        "name": "Vodka-Z",
+        "items": [
+            "Vodka",
+            "Zitronen-Saft"
+        ],
+        "available": false
+    },
+    {
+        "name": "Vodka-A",
+        "items": [
+            "Vodka",
+            "Ananas-Saft"
+        ],
+        "available": false
+    }
+]

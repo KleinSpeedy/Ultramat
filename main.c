@@ -7,6 +7,7 @@
 void css_set(GtkCssProvider *prov, GtkWidget *widg);
 
 // Make them global
+
 GtkBuilder *builder;
 GtkWidget *window;
 
