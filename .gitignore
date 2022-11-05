@@ -55,6 +55,9 @@ dkms.conf
 .vscode
 build
 
+# Glade autosave
+*.glade~
+
 # Cmake
 CMakeLists.txt.user
 CMakeCache.txt

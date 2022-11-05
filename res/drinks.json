@@ -1,26 +1,56 @@
 [
     {
-        "name": "Vodka-O",
-        "items": [
-            "Vodka",
-            "Orangen-Saft"
-        ],
-        "available": false
+        "name": "Gin",
+        "drinkID": 1,
+        "position": null,
+        "selected": false
     },
     {
-        "name": "Vodka-Z",
-        "items": [
-            "Vodka",
-            "Zitronen-Saft"
-        ],
-        "available": false
+        "name": "Vodka", 
+        "drinkID": 2,
+        "position": null,
+        "selected": false
     },
     {
-        "name": "Vodka-A",
-        "items": [
-            "Vodka",
-            "Ananas-Saft"
-        ],
-        "available": false
+        "name": "Aperol", 
+        "drinkID": 3,
+        "position": null,
+        "selected": false
+    },
+    {
+        "name": "Martini",
+        "drinkID": 4,
+        "position": null,
+        "selected": false
+    },
+    {
+        "name": "Lime Juice",
+        "drinkID": 5,
+        "position": null,
+        "selected": false
+    },
+    {
+        "name": "Orangen-Saft",
+        "drinkID": 6,
+        "position": null,
+        "selected": false
+    },
+    {
+        "name":"Ananas-Saft",   
+        "drinkID": 7,
+        "position": null,
+        "selected": false
+    },
+    {
+        "name": "Zitronen-Saft",
+        "drinkID": 8,
+        "position": null,
+        "selected": false
+    },
+    {
+        "name": "Soda",
+        "drinkID": 9,
+        "position": null,
+        "selected": false
     }
 ]

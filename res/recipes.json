@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Vodka-O",
+        "items": [
+            2,
+            6
+        ],
+        "available": false
+    },
+    {
+        "name": "Vodka-Z",
+        "items": [
+            2,
+            8
+        ],
+        "available": false
+    },
+    {
+        "name": "Vodka-A",
+        "items": [
+            2,
+            7
+        ],
+        "available": false
+    }
+]

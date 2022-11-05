@@ -24,10 +24,13 @@ set(CMAKE_C_FLAGS "-rdynamic")
 add_definitions(${GTK3_CFLAGS_OTHER})
 
 # Add the executable from *.c files
-add_executable(ultramat main.c position.c)
+add_executable(ultramat main.c ext/cJSON/cJSON.c src/Gui.c src/SerialHandler.c src/DrinkManagement.c)
 
 # TODO: target_compile_options doesnt work, fix with CMAKE_C_FLAGS
 #target_compile_options(ultramat PRIVATE -rdynamic)
+
+# include cjson as cmake lib
+#add_subdirectory(./ext/cJSON)
 
 # Link the target to the GTK+ libraries
 target_link_libraries(ultramat ${GTK3_LIBRARIES})
