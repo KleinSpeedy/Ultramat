@@ -1,11 +1,20 @@
 /* Test File */
 
-label {
-    font-size: larger;
-    color: rgb(47, 130, 157);
+stackswitcher#mainStackSwitcher {
+    background-color: lightblue;
 }
 
-switch {
-    color: black;
-    font-size: larger;
+label#projectTitle {
+    font-size: 35px;
+    font-family: sans-serif;
+    font-weight: bold;
+    background-color: lightcoral;
+}
+
+stack label{
+    font-size: large;
+}
+
+switch#motorSwitch {
+    background-color: lightgreen;
 }

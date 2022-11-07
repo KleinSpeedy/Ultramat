@@ -3,10 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(ultramat VERSION 0.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_C_COMPILER gcc)
-
 
 # Use the package PkgConfig to detect GTK+ headers/library files
 find_package(PkgConfig REQUIRED)
@@ -24,13 +22,12 @@ set(CMAKE_C_FLAGS "-rdynamic")
 add_definitions(${GTK3_CFLAGS_OTHER})
 
 # Add the executable from *.c files
-add_executable(ultramat main.c ext/cJSON/cJSON.c src/Gui.c src/SerialHandler.c src/DrinkManagement.c)
+add_executable(ultramat main.c gui.c pages.c drinks.c drinkarray.c)
 
 # TODO: target_compile_options doesnt work, fix with CMAKE_C_FLAGS
 #target_compile_options(ultramat PRIVATE -rdynamic)
 
-# include cjson as cmake lib
-#add_subdirectory(./ext/cJSON)
-
 # Link the target to the GTK+ libraries
 target_link_libraries(ultramat ${GTK3_LIBRARIES})
+
+# includes resources
