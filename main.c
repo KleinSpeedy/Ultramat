@@ -3,8 +3,7 @@
 
 int main(int argc, char **argv)
 {
-    setupDrinkManagement();
-    setupGui(argc, argv);
+    guiHandler(argc, argv);
 
     return 0;
 }

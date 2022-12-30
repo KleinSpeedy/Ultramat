@@ -14,7 +14,3 @@ label#projectTitle {
 stack label{
     font-size: large;
 }
-
-switch#motorSwitch {
-    background-color: lightgreen;
-}

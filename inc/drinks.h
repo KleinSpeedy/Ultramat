@@ -4,12 +4,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "helper.h"
-//#include <gtk/gtk.h>
+#include "drinkarray.h"
+#include <gtk/gtk.h>
 
 /* functions */
 
-void setupDrinkManagement();
+Ing_Array_t *getAllIngredients();
+Rec_Array_t *getAllRecipes();
 
-bool recipeAvailable();
+void setupDrinkManagement(Ing_Array_t *ingArray, Rec_Array_t *recArray);
 
 #endif //__DRINKS_H__

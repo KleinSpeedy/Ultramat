@@ -1,5 +1,7 @@
 #include "inc/gui.h"
 #include "inc/pages.h"
+#include "inc/drinks.h"
+#include "inc/drinklists.h"
 
 /* "private" function declaration */
 
@@ -23,7 +25,7 @@ const int g_height = 800;
 
 /* function definitions */
 
-void setupGui(int argc, char **argv)
+void guiHandler(int argc, char **argv)
 {
     GtkCssProvider *css_provider = gtk_css_provider_new();
     gtk_css_provider_load_from_path(css_provider, "./style.css", NULL);
@@ -36,8 +38,14 @@ void setupGui(int argc, char **argv)
     createTopHeader();
     gtk_box_reorder_child(g_mainBox, GTK_WIDGET(g_mainStack), 1);
 
+    Ing_Array_t *ingredientsArray = getAllIngredients();
+    Rec_Array_t *recipeArray = getAllRecipes();
+
+    GtkListStore *ingListStore, *recListStore;
+    ingListStore = createIngredientListStore(ingredientsArray);
+    
     /* Stack pages */
-    createStackPages(g_mainStack);
+    createStackPages(g_mainStack, ingListStore);
 
     /* apply style.css to window */
     gtk_style_context_add_provider_for_screen(
@@ -46,7 +54,11 @@ void setupGui(int argc, char **argv)
         GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     gtk_widget_show_all(GTK_WIDGET(g_mainWindow));
+
     gtk_main();
+
+    free_ing_array(ingredientsArray);
+    free_rec_array(recipeArray);
 }
 
 void createMainWindow()

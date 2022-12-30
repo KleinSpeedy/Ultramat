@@ -22,7 +22,7 @@ set(CMAKE_C_FLAGS "-rdynamic")
 add_definitions(${GTK3_CFLAGS_OTHER})
 
 # Add the executable from *.c files
-add_executable(ultramat main.c gui.c pages.c drinks.c drinkarray.c)
+add_executable(ultramat main.c gui.c pages.c drinks.c drinkarray.c drinklists.c)
 
 # TODO: target_compile_options doesnt work, fix with CMAKE_C_FLAGS
 #target_compile_options(ultramat PRIVATE -rdynamic)

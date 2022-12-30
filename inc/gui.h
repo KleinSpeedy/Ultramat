@@ -4,7 +4,6 @@
 #include <gtk/gtk.h>
 #include "helper.h"
 
-void setupGui(int argc, char **argv);
-
+void guiHandler(int argc, char **argv);
 
 #endif //__GUI_H__

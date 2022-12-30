@@ -33,7 +33,7 @@ and
 
 ---
 
-`build.sh`  
+`dewit.sh`  
 Builds GTK Project.
 
 `run.sh`  
