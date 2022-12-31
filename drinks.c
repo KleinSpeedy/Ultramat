@@ -41,45 +41,6 @@ Rec_Array_t *getAllRecipes()
     return recipesArray;
 }
 
-void setupDrinkManagement(Ing_Array_t *ingredientsArray, Rec_Array_t *recipesArray)
-{
-    int ingredientCount = getIngredientCount();
-    int recipeCount = getRecipeCount();
-
-    ingredientsArray = create_ing_array(ingredientCount);
-    readIngredientsFromFile(ingredientsArray);
-    /*
-    for(int i = 0; i < ingredientsArray->size; i++)
-    {
-        Ingredient_t current = get_at_ing_array(ingredientsArray, i);
-        printf("name: %s id: %d pos: %d selected: %d\n",
-            current.name,
-            current.id,
-            current.position,
-            current.selected);
-    }
-    */
-
-    recipesArray = create_rec_array(recipeCount);
-    readRecipesFromFile(recipesArray);
-    /*
-    for(int i = 0; i < recipesArray->size; i++)
-    {
-        Recipe_t current = get_at_rec_array(recipesArray, i);
-        printf("name: %s id: %d ing: %d\n",current.name, current.id, current.ingredientCount);
-        for(int j = 0; j < current.ingredientCount; j++)
-        {
-            printf("id: %d q: %d ",
-                current.recipeTuples[j].id,
-                current.recipeTuples[j].quantity);
-        }
-        printf("\n");
-    }
-    */
-    //free_ing_array(ingredientsArray);
-    //free_rec_array(recipesArray);
-}
-
 /**
  * @brief get all ingredients from file and save them in ingredient array
  * 

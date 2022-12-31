@@ -5,7 +5,6 @@
 #include "helper.h"
 
 // create the different stack pages and populate them with content
-void createStackPages(GtkStack *mainStack, GtkListStore *ingListStore);
-//void getListStores(GtkListStore *ingListStore, GtkListStore *recListStore);
+void createStackPages(GtkStack *mainStack, GtkListStore *ingListStore, GtkListStore *recListStore);
 
 #endif //__PAGES_H__

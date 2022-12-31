@@ -32,7 +32,7 @@ void guiHandler(int argc, char **argv)
 
     gtk_init(&argc, &argv);
 
-    /* Create "broad" layout */
+    /* Create "broad" layout */ //TODO: remove g_vars and refactor
     createMainWindow();
     createWindowStack();
     createTopHeader();
@@ -41,11 +41,11 @@ void guiHandler(int argc, char **argv)
     Ing_Array_t *ingredientsArray = getAllIngredients();
     Rec_Array_t *recipeArray = getAllRecipes();
 
-    GtkListStore *ingListStore, *recListStore;
-    ingListStore = createIngredientListStore(ingredientsArray);
+    GtkListStore *ingListStore = createIngredientListStore(ingredientsArray);
+    GtkListStore *recListStore = createRecipeListStore(recipeArray);
     
     /* Stack pages */
-    createStackPages(g_mainStack, ingListStore);
+    createStackPages(g_mainStack, ingListStore, recListStore);
 
     /* apply style.css to window */
     gtk_style_context_add_provider_for_screen(
@@ -90,7 +90,7 @@ void createWindowStack()
     gtk_stack_set_transition_type(g_mainStack, GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
     gtk_stack_set_transition_duration(g_mainStack, 250 /*ms*/);
 
-    gtk_box_pack_start(g_mainBox, GTK_WIDGET(g_mainStack), FALSE, FALSE, 0);
+    gtk_box_pack_start(g_mainBox, GTK_WIDGET(g_mainStack), TRUE, TRUE, 0);
 }
 
 void createTopHeader()

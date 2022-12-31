@@ -12,6 +12,4 @@
 Ing_Array_t *getAllIngredients();
 Rec_Array_t *getAllRecipes();
 
-void setupDrinkManagement(Ing_Array_t *ingArray, Rec_Array_t *recArray);
-
 #endif //__DRINKS_H__

@@ -9,4 +9,6 @@
 
 GtkListStore *createIngredientListStore(Ing_Array_t *ingArray);
 
+GtkListStore *createRecipeListStore(Rec_Array_t *recArray);
+
 #endif //__DRINKLISTS_H__

@@ -1,16 +1,37 @@
 /* Test File */
 
 stackswitcher#mainStackSwitcher {
-    background-color: lightblue;
+    font-size: large;
+    font-weight: bold;
 }
 
 label#projectTitle {
     font-size: 35px;
     font-family: sans-serif;
     font-weight: bold;
-    background-color: lightcoral;
 }
 
 stack label{
     font-size: large;
+}
+
+label#Progressbar_Label {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+combobox {
+    font-size: large;
+}
+
+separator {
+    background-color: rgb(93, 93, 93);
+}
+
+stack {
+    background-color: aqua;
+}
+
+box#Box_P_2 {
+    background-color: blue;
 }

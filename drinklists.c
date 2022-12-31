@@ -49,3 +49,41 @@ GtkListStore *createIngredientListStore(Ing_Array_t *ingArray)
 
     return ingListStore;
 }
+
+GtkListStore *createRecipeListStore(Rec_Array_t *recipeArray)
+{
+    enum {
+        COLUMN_NAME,
+        COLUMN_ID,
+        COLUMN_AVAILABLE,
+
+        NUM_COLUMNS
+    };
+
+    GtkListStore *recipeListStore = gtk_list_store_new(
+        NUM_COLUMNS,
+        G_TYPE_STRING,
+        G_TYPE_INT,
+        G_TYPE_BOOLEAN);
+    CHECK_WIDGET(recipeListStore, "Recipe List Store");
+
+    GtkTreeIter iterator;
+
+    for(int i = 0; i < recipeArray->size; i++)
+    {
+        Recipe_t current = get_at_rec_array(recipeArray, i);
+
+        gchar *gname = current.name;
+        guint8 gid = current.id;
+        gboolean gavailable = current.available;
+
+        gtk_list_store_append(recipeListStore, &iterator);
+        gtk_list_store_set(recipeListStore, &iterator,
+            COLUMN_NAME, gname,
+            COLUMN_ID, gid,
+            COLUMN_AVAILABLE, gavailable,
+            -1); // terminate 
+    }
+
+    return recipeListStore;
+}
