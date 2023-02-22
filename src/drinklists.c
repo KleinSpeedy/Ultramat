@@ -1,5 +1,5 @@
-#include "inc/drinklists.h"
-#include "inc/drinks.h"
+#include "drinklists.h"
+#include "drinks.h"
 
 /* private functions */
 

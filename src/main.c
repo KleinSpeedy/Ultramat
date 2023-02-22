@@ -1,5 +1,5 @@
-#include "inc/gui.h"
-#include "inc/drinks.h"
+#include "gui.h"
+#include "drinks.h"
 
 int main(int argc, char **argv)
 {

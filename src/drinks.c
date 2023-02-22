@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "inc/drinks.h"
-#include "inc/drinkarray.h"
+#include "drinks.h"
+#include "drinkarray.h"
 
 #define INPUT_BUFFER 128
-const char *ingredientsFile = "ingredients.txt";
-const char *recipeFile = "recipes.txt";
+const char *ingredientsFile = "res/ingredients.txt";
+const char *recipeFile = "res/recipes.txt";
 
 /* private function declarations */
 

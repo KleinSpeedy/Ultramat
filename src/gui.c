@@ -1,7 +1,7 @@
-#include "inc/gui.h"
-#include "inc/pages.h"
-#include "inc/drinks.h"
-#include "inc/drinklists.h"
+#include "gui.h"
+#include "pages.h"
+#include "drinks.h"
+#include "drinklists.h"
 
 /* "private" function declaration */
 
@@ -28,7 +28,7 @@ const int g_height = 800;
 void guiHandler(int argc, char **argv)
 {
     GtkCssProvider *css_provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(css_provider, "./style.css", NULL);
+    gtk_css_provider_load_from_path(css_provider, "res/style.css", NULL);
 
     gtk_init(&argc, &argv);
 

@@ -1,4 +1,4 @@
 #!/bin/sh
 
 # run programm
-./build/ultramat
+./build/src/ultramat

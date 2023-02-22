@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "inc/helper.h"
-#include "inc/drinkarray.h"
+#include "helper.h"
+#include "drinkarray.h"
 
 /**
  * @brief Create a ingredients array of a specified size

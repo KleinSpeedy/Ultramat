@@ -1,4 +1,4 @@
-#include "inc/pages.h"
+#include "pages.h"
 
 /* "private" function declaration */
 

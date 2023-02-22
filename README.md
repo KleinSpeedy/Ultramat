@@ -1,5 +1,7 @@
 # Ultramat
-## Bar-Roboter Project
+## Automatic Drink Dispenser Project
+
+UI for a self-built mixing robot. Stepper control through serial connection to a Arduino.
 
 ---
 ### Project Setup
@@ -34,7 +36,9 @@ and
 ---
 
 `dewit.sh`  
+
 Builds GTK Project.
 
 `run.sh`  
+
 Runs Executable.
