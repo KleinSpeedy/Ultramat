@@ -1,11 +1,18 @@
+/* This file implements creating GTK ListStore objects for recipes and ingredients
+ * from their respective arrays */
+
 #include "drinklists.h"
 #include "drinks.h"
-
-/* private functions */
+#include "checks.h"
 
 /* function implementation */
 
-GtkListStore *createIngredientListStore(Ing_Array_t *ingArray)
+/**
+ * @brief Creates GTK ListStore from ingredients array
+ * 
+ * @return ListStore with ingredients
+*/
+GtkListStore *create_ingredient_listStore(Ing_Array_t *ingArray)
 {
     // ingredient informations for list store 
     enum {
@@ -50,7 +57,12 @@ GtkListStore *createIngredientListStore(Ing_Array_t *ingArray)
     return ingListStore;
 }
 
-GtkListStore *createRecipeListStore(Rec_Array_t *recipeArray)
+/**
+ * @brief creates GTK ListStore from recipes array
+ * 
+ * @return ListStore with recipes
+*/
+GtkListStore *create_recipe_listStore(Rec_Array_t *recipeArray)
 {
     enum {
         COLUMN_NAME,

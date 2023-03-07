@@ -7,8 +7,8 @@
 /* Main control for ingredients and recipes 
  * uses GTK Liststore for selection of drinks */
 
-GtkListStore *createIngredientListStore(Ing_Array_t *ingArray);
+GtkListStore *create_ingredient_listStore(Ing_Array_t *ingArray);
 
-GtkListStore *createRecipeListStore(Rec_Array_t *recArray);
+GtkListStore *create_recipe_listStore(Rec_Array_t *recArray);
 
 #endif //__DRINKLISTS_H__

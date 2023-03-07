@@ -1,6 +1,9 @@
+/* This file implements the Recipes and Ingredients Array data structures 
+ * Consists of creation, deletion, setting and deleting a object at a specific position */
+
 #include <stdlib.h>
 #include <stdio.h>
-#include "helper.h"
+#include "checks.h"
 #include "drinkarray.h"
 
 /**

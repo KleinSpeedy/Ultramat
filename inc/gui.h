@@ -2,7 +2,6 @@
 #define __GUI_H__
 
 #include <gtk/gtk.h>
-#include "helper.h"
 
 void guiHandler(int argc, char **argv);
 

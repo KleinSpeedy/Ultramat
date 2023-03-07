@@ -1,17 +1,23 @@
+/* This file populates the different stack pages. */
+
+#include "checks.h"
 #include "pages.h"
+#include "callbacks.h"
+#include "drinks.h"
 
 /* "private" function declaration */
 
-void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore);
-void populateStackPage_Two(GtkStack *mainStack, GtkListStore *recListStore);
+void populateStackPage_One(GtkStack *mainStack, DrinkManagement_t *dm);
+void populateStackPage_Two(GtkStack *mainStack, DrinkManagement_t *dm);
 void populateStackPage_Three(GtkStack *mainStack);
+void populateStackPage_Four(GtkStack *mainStack);
 
 /* function declaration */
 
-void createStackPages(GtkStack *mainStack, GtkListStore *ingListStore, GtkListStore *recListStore)
+void createStackPages(GtkStack *mainStack, DrinkManagement_t *dm)
 {
-    populateStackPage_One(mainStack, ingListStore);
-    populateStackPage_Two(mainStack, recListStore);
+    populateStackPage_One(mainStack, dm);
+    populateStackPage_Two(mainStack, dm);
     populateStackPage_Three(mainStack);
 }
 
@@ -20,8 +26,9 @@ void createStackPages(GtkStack *mainStack, GtkListStore *ingListStore, GtkListSt
  * 
  * @param mainStack 
  * @param ingListStore 
+ * @param ingArray
  */
-void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore)
+void populateStackPage_One(GtkStack *mainStack, DrinkManagement_t *dm)
 {
     GtkBox *pageOneBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     CHECK_WIDGET(pageOneBox, "Page 1 Box");
@@ -34,13 +41,13 @@ void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore)
 
     GtkGrid *selectionGrid = GTK_GRID(gtk_grid_new());
     CHECK_WIDGET(selectionGrid, "Drink Grid");
-    
+
     gtk_grid_set_column_spacing(selectionGrid, 25);
-    gtk_grid_set_row_spacing(selectionGrid, 25);
+    gtk_grid_set_row_spacing(selectionGrid, 50);
 
     /* 6 possible drinks, each consists of a Label, a Image and a Combo Box */
 
-    GtkTreeModel *ingListModel = GTK_TREE_MODEL(ingListStore);
+    GtkTreeModel *ingListModel = GTK_TREE_MODEL(dm->ingredientListStore);
 
     GtkBox *boxPos1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkImage *imagePos1 = GTK_IMAGE(gtk_image_new());
@@ -97,6 +104,7 @@ void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore)
     CHECK_WIDGET(comboPos6, "Combo Pos 6");
 
     // extract entries from combo boxes, display default text and disable editable
+
     GtkEntry *entryPos1 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos1)));
     GtkEntry *entryPos2 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos2)));
     GtkEntry *entryPos3 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos3)));
@@ -116,7 +124,11 @@ void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore)
     gtk_editable_set_editable(GTK_EDITABLE(entryPos3), FALSE);
     gtk_editable_set_editable(GTK_EDITABLE(entryPos4), FALSE);
     gtk_editable_set_editable(GTK_EDITABLE(entryPos5), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(entryPos6), FALSE);    
+    gtk_editable_set_editable(GTK_EDITABLE(entryPos6), FALSE);
+
+    // register combo/entry callbacks
+    g_signal_connect(comboPos1, "changed", G_CALLBACK(on_combo_pos1_changed), NULL);
+    g_signal_connect(comboPos2, "changed", G_CALLBACK(on_combo_pos2_changed), ingListModel);
 
     // make combo boxes big enough, makes everything else bigger too
     int comboWidth = 200, comboHeight = 60;
@@ -127,7 +139,7 @@ void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore)
     gtk_widget_set_size_request(GTK_WIDGET(comboPos5), comboWidth, comboHeight);
     gtk_widget_set_size_request(GTK_WIDGET(comboPos6), comboWidth, comboHeight);
 
-    // make name column the one that gets displayed
+    // make name column the one that gets displayed, id column the id column
     gtk_combo_box_set_entry_text_column(comboPos1, 0);
     gtk_combo_box_set_entry_text_column(comboPos2, 0);
     gtk_combo_box_set_entry_text_column(comboPos3, 0);
@@ -179,7 +191,7 @@ void populateStackPage_One(GtkStack *mainStack, GtkListStore *ingListStore)
  * @param mainStack 
  * @param recListStore 
  */
-void populateStackPage_Two(GtkStack *mainStack, GtkListStore *recListStore)
+void populateStackPage_Two(GtkStack *mainStack, DrinkManagement_t *dm)
 {
     GtkBox *pageTwoBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     CHECK_WIDGET(pageTwoBox, "Page two box");
@@ -200,7 +212,7 @@ void populateStackPage_Two(GtkStack *mainStack, GtkListStore *recListStore)
 
     /* Use left side of page 2 for ordering a drink, pack them in Box */
 
-    GtkTreeModel *listModel = GTK_TREE_MODEL(recListStore);
+    GtkTreeModel *listModel = GTK_TREE_MODEL(dm->recipeListStore);
 
     GtkBox *boxComboOrder = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
     GtkLabel *orderHeaderlabel = GTK_LABEL(gtk_label_new("Drink auswählen:"));
@@ -220,7 +232,7 @@ void populateStackPage_Two(GtkStack *mainStack, GtkListStore *recListStore)
     gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderStartButton), FALSE, FALSE, 0);
 
     gtk_widget_set_valign(GTK_WIDGET(boxComboOrder), GTK_ALIGN_CENTER);
-    
+
     /* get entry of combo box to set properties */
     GtkEntry *entryComboOrder = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboOrder)));
     gtk_entry_set_text(entryComboOrder, "Drink auswählen!");
@@ -291,4 +303,9 @@ void populateStackPage_Three(GtkStack *mainStack)
     gtk_box_pack_start(pageThreeBox, GTK_WIDGET(manualPosBox), TRUE, TRUE, 25);
 
     gtk_stack_add_titled(mainStack, GTK_WIDGET(pageThreeBox), "Page_Three", "Manuell");
+}
+
+void populateStackPage_Four(GtkStack *mainStack)
+{
+
 }

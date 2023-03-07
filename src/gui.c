@@ -1,3 +1,8 @@
+/* This file contains the main implementation of the Graphical User Interface.
+ * This consists of creating the different pages and implementing the main GUI thread.
+*/
+
+#include "checks.h"
 #include "gui.h"
 #include "pages.h"
 #include "drinks.h"
@@ -32,20 +37,29 @@ void guiHandler(int argc, char **argv)
 
     gtk_init(&argc, &argv);
 
-    /* Create "broad" layout */ //TODO: remove g_vars and refactor
+    /* Create "broad" layout */ 
+    //TODO: remove g_vars and refactor
     createMainWindow();
     createWindowStack();
     createTopHeader();
     gtk_box_reorder_child(g_mainBox, GTK_WIDGET(g_mainStack), 1);
 
-    Ing_Array_t *ingredientsArray = getAllIngredients();
-    Rec_Array_t *recipeArray = getAllRecipes();
+    Ing_Array_t *ingredientsArray = get_all_ingredients();
+    Rec_Array_t *recipeArray = get_all_recipes();
 
-    GtkListStore *ingListStore = createIngredientListStore(ingredientsArray);
-    GtkListStore *recListStore = createRecipeListStore(recipeArray);
-    
+    GtkListStore *ingListStore = create_ingredient_listStore(ingredientsArray);
+    GtkListStore *recListStore = create_recipe_listStore(recipeArray);
+
+    DrinkManagement_t dm = {
+        ingredientsArray,
+        recipeArray,
+        NULL, // last Ingredient, on startup nothing selected
+        ingListStore,
+        recListStore
+    };
+
     /* Stack pages */
-    createStackPages(g_mainStack, ingListStore, recListStore);
+    createStackPages(g_mainStack, &dm);
 
     /* apply style.css to window */
     gtk_style_context_add_provider_for_screen(

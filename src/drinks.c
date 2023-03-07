@@ -1,6 +1,11 @@
+/* This file is the main implementation for the Drinks and Recipes Management of the ultramat.
+ * It consists of reading the resource files and extracting the data into recipes/ingredients arrays.
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "checks.h"
 #include "drinks.h"
 #include "drinkarray.h"
 
@@ -10,33 +15,43 @@ const char *recipeFile = "res/recipes.txt";
 
 /* private function declarations */
 
-uint8_t convertToNumber(char *buffer, int start, int end);
+uint8_t convert_to_number(char *buffer, int start, int end);
 
-void readIngredientsFromFile(Ing_Array_t *array);
-int getIngredientCount();
+void read_ingredients_from_file(Ing_Array_t *array);
+int get_ingredient_count();
 
-void readRecipesFromFile(Rec_Array_t *array);
-uint8_t readRecipeIngredients(DrinkTuple_t *recipeIngredients, char *buffer);
-int getRecipeCount();
+void read_recipes_from_file(Rec_Array_t *array);
+uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer);
+int get_recipe_count();
 
 /* function definitions */
 
-Ing_Array_t *getAllIngredients()
+/**
+ * @brief Read all ingredients from file and save them in array 
+ * 
+ * @return Ing_Array_t - array of ingredients 
+*/
+Ing_Array_t *get_all_ingredients()
 {
-    int ingredientCount = getIngredientCount();
+    int ingredientCount = get_ingredient_count();
 
     Ing_Array_t *ingredientsArray = create_ing_array(ingredientCount);
-    readIngredientsFromFile(ingredientsArray);
+    read_ingredients_from_file(ingredientsArray);
 
     return ingredientsArray;
 }
 
-Rec_Array_t *getAllRecipes()
+/**
+ * @brief Read all recipes from file and save them in array 
+ * 
+ * @return Rec_Array_t - array of recipes 
+*/
+Rec_Array_t *get_all_recipes()
 {
-    int recipeCount = getRecipeCount();
+    int recipeCount = get_recipe_count();
 
     Rec_Array_t *recipesArray = create_rec_array(recipeCount);
-    readRecipesFromFile(recipesArray);
+    read_recipes_from_file(recipesArray);
 
     return recipesArray;
 }
@@ -46,7 +61,7 @@ Rec_Array_t *getAllRecipes()
  * 
  * @param array stores all ingredients with name and id
  */
-void readIngredientsFromFile(Ing_Array_t *array)
+void read_ingredients_from_file(Ing_Array_t *array)
 {
     char buffer[INPUT_BUFFER];
     memset(buffer, 0, INPUT_BUFFER);
@@ -72,7 +87,7 @@ void readIngredientsFromFile(Ing_Array_t *array)
                 }
                 else
                 {
-                    uint8_t id = convertToNumber(buffer, lastSemiColon+1, i);
+                    uint8_t id = convert_to_number(buffer, lastSemiColon+1, i);
                     array->ingredients[index].id = id;
                 }
             }
@@ -93,7 +108,7 @@ void readIngredientsFromFile(Ing_Array_t *array)
  * 
  * @param array stores all recipes with given parameters
  */
-void readRecipesFromFile(Rec_Array_t *array)
+void read_recipes_from_file(Rec_Array_t *array)
 {
     char buffer[INPUT_BUFFER];
     memset(buffer, 0, INPUT_BUFFER);
@@ -130,7 +145,7 @@ void readRecipesFromFile(Rec_Array_t *array)
                 {
                     if(!idRead)
                     {
-                        uint8_t id = convertToNumber(buffer, lastSemiColon+1, i);
+                        uint8_t id = convert_to_number(buffer, lastSemiColon+1, i);
                         array->recipes[index].id = id;
                         idRead = true;
                         lastSemiColon = i;
@@ -140,7 +155,7 @@ void readRecipesFromFile(Rec_Array_t *array)
                         // enter only after reading both name and id
                         // pass string beginning !after! name and id
                         currentIngredientCount =
-                            readRecipeIngredients(currentRecipeList, &buffer[lastSemiColon]);
+                            read_recipe_ingredients(currentRecipeList, &buffer[lastSemiColon]);
                         // read next recipe after done
                         break;
                     }
@@ -166,7 +181,7 @@ void readRecipesFromFile(Rec_Array_t *array)
  * @param buffer input string after recipe name and id
  * @return uint8_t ingredient count for the recipe 
  */
-uint8_t readRecipeIngredients(DrinkTuple_t *recipeIngredients, char *buffer)
+uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer)
 {
     bool firstIngredient = true;
     int lastHit = 0, digitCount = 0;
@@ -186,7 +201,7 @@ uint8_t readRecipeIngredients(DrinkTuple_t *recipeIngredients, char *buffer)
             for(int j = lastHit; buffer[j] != '-'; j++)
                 digitCount++;
             
-            ingId = convertToNumber(buffer, lastHit, lastHit+digitCount);
+            ingId = convert_to_number(buffer, lastHit, lastHit+digitCount);
 
             // if not first ingredient reallocate new space
             if(!firstIngredient)
@@ -209,8 +224,8 @@ uint8_t readRecipeIngredients(DrinkTuple_t *recipeIngredients, char *buffer)
             lastHit = i + 1; // jump over Dash
             for(int j = lastHit; buffer[j] != ';'; j++)
                 digitCount++;
-            
-            ingQuantity = convertToNumber(buffer, lastHit, lastHit+digitCount);
+
+            ingQuantity = convert_to_number(buffer, lastHit, lastHit+digitCount);
             recipeTuples[ingIndex].quantity = ingQuantity;            
             ingIndex++;
             ingCounter++;
@@ -230,7 +245,7 @@ uint8_t readRecipeIngredients(DrinkTuple_t *recipeIngredients, char *buffer)
  * 
  * @return int - count
  */
-int getIngredientCount()
+int get_ingredient_count()
 {
     int ingredientCount = 0;
     char buffer[INPUT_BUFFER];
@@ -251,9 +266,9 @@ int getIngredientCount()
 /**
  * @brief Get the count of all recipes from recipes.txt
  * 
- * @return int - count
+ * @return int - recipe count
  */
-int getRecipeCount()
+int get_recipe_count()
 {
     int recipeCount = 0;
     char buffer[INPUT_BUFFER];
@@ -279,7 +294,7 @@ int getRecipeCount()
  * @param end end of specific char number
  * @return uint8_t converted number
  */
-uint8_t convertToNumber(char *buffer, int start, int end)
+uint8_t convert_to_number(char *buffer, int start, int end)
 {
     int convertedNumber = 0;
     int digitCount = end - start;

@@ -42,3 +42,10 @@ Builds GTK Project.
 `run.sh`  
 
 Runs Executable.
+
+### TODOS
+
+- Remove global variables in `gui.c`
+- Refactor `drinks.c`, `drinklist.c` and `drinkarray.c` 
+- Get rid of ingredient and array recipes and replace with 2D array?
+- Determine wheter list store can replace "array data structure" entirely
