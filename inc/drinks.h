@@ -8,17 +8,14 @@
 
 /* functions */
 
-typedef struct drinkManagement
+struct DrinkManagement
 {
     Ing_Array_t *ingredientArray;
     Rec_Array_t *recipeArray;
 
-    // save last ingredient to track changes
-    Ingredient_t *last;
-
     GtkListStore *ingredientListStore;
     GtkListStore *recipeListStore;
-} DrinkManagement_t;
+};
 
 Ing_Array_t *get_all_ingredients();
 Rec_Array_t *get_all_recipes();

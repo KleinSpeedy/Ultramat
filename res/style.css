@@ -27,11 +27,3 @@ combobox {
 separator {
     background-color: rgb(93, 93, 93);
 }
-
-stack {
-    background-color: aqua;
-}
-
-box#Box_P_2 {
-    background-color: blue;
-}

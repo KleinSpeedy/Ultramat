@@ -6,6 +6,6 @@
 #include "drinklists.h"
 
 // create the different stack pages and populate them with content
-void createStackPages(GtkStack *mainStack, DrinkManagement_t *dm);
+void createStackPages(GtkStack *mainStack, struct DrinkManagement *dm);
 
 #endif //__PAGES_H__
