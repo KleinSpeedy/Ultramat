@@ -4,17 +4,18 @@
 #include "pages.h"
 #include "callbacks.h"
 #include "drinks.h"
+#include <glib.h>
 
 /* "private" function declaration */
 
-void populateStackPage_One(GtkStack *mainStack, DrinkManagement_t *dm);
-void populateStackPage_Two(GtkStack *mainStack, DrinkManagement_t *dm);
-void populateStackPage_Three(GtkStack *mainStack);
-void populateStackPage_Four(GtkStack *mainStack);
+static void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm);
+static void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm);
+static void populateStackPage_Three(GtkStack *mainStack);
+static void populateStackPage_Four(GtkStack *mainStack);
 
 /* function declaration */
 
-void createStackPages(GtkStack *mainStack, DrinkManagement_t *dm)
+void createStackPages(GtkStack *mainStack, struct DrinkManagement *dm)
 {
     populateStackPage_One(mainStack, dm);
     populateStackPage_Two(mainStack, dm);
@@ -28,7 +29,7 @@ void createStackPages(GtkStack *mainStack, DrinkManagement_t *dm)
  * @param ingListStore 
  * @param ingArray
  */
-void populateStackPage_One(GtkStack *mainStack, DrinkManagement_t *dm)
+void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
 {
     GtkBox *pageOneBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     CHECK_WIDGET(pageOneBox, "Page 1 Box");
@@ -126,12 +127,16 @@ void populateStackPage_One(GtkStack *mainStack, DrinkManagement_t *dm)
     gtk_editable_set_editable(GTK_EDITABLE(entryPos5), FALSE);
     gtk_editable_set_editable(GTK_EDITABLE(entryPos6), FALSE);
 
-    // register combo/entry callbacks
-    g_signal_connect(comboPos1, "changed", G_CALLBACK(on_combo_pos1_changed), NULL);
-    g_signal_connect(comboPos2, "changed", G_CALLBACK(on_combo_pos2_changed), ingListModel);
+    // register combo/entry callbacks, pass position as pointer!
+    g_signal_connect(comboPos1, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(1));
+    g_signal_connect(comboPos2, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(2));
+    g_signal_connect(comboPos3, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(3));
+    g_signal_connect(comboPos4, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(4));
+    g_signal_connect(comboPos5, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(5));
+    g_signal_connect(comboPos6, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(6));
 
     // make combo boxes big enough, makes everything else bigger too
-    int comboWidth = 200, comboHeight = 60;
+    const int comboWidth = 200, comboHeight = 60;
     gtk_widget_set_size_request(GTK_WIDGET(comboPos1), comboWidth, comboHeight);
     gtk_widget_set_size_request(GTK_WIDGET(comboPos2), comboWidth, comboHeight);
     gtk_widget_set_size_request(GTK_WIDGET(comboPos3), comboWidth, comboHeight);
@@ -191,7 +196,7 @@ void populateStackPage_One(GtkStack *mainStack, DrinkManagement_t *dm)
  * @param mainStack 
  * @param recListStore 
  */
-void populateStackPage_Two(GtkStack *mainStack, DrinkManagement_t *dm)
+void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
 {
     GtkBox *pageTwoBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     CHECK_WIDGET(pageTwoBox, "Page two box");
