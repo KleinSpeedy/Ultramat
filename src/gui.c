@@ -2,6 +2,7 @@
  * This consists of creating the different pages and implementing the main GUI thread.
 */
 
+#include "callbacks.h"
 #include "checks.h"
 #include "gui.h"
 #include "pages.h"
@@ -24,6 +25,9 @@ GtkBox *g_mainBox;
 GtkStack *g_mainStack;
 GtkStackSwitcher *g_mainStackSwitcher;
 GtkSwitch *g_mainMotorSwitch;
+
+// HACK: get handler id for motor switch
+extern gulong g_handlerIdMotorSwitch;
 
 const int g_width = 1280;
 const int g_height = 800;
@@ -130,6 +134,10 @@ void createTopHeader()
     CHECK_WIDGET(g_mainMotorSwitch, "Motor Switch");
     gtk_widget_set_name(GTK_WIDGET(g_mainMotorSwitch), "motorSwitch");
     gtk_widget_set_size_request(GTK_WIDGET(g_mainMotorSwitch), 180, 100);
+
+    // connect motor activate callback
+    g_handlerIdMotorSwitch = g_signal_connect(g_mainMotorSwitch, "state-set",
+            G_CALLBACK(on_motor_switch_toggle), NULL);
 
     gtk_fixed_put(headerFixed, GTK_WIDGET(g_mainStackSwitcher), 0, 0);
     gtk_fixed_put(headerFixed, GTK_WIDGET(projectTitle), 560, 25);

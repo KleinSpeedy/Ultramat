@@ -8,7 +8,7 @@
  * uses GTK Liststore for selection of drinks */
 
 // Column values for ingredients
-static enum {
+typedef enum {
     ING_COLUMN_NAME,
     ING_COLUMN_ID,
     ING_COLUMN_POSITION,
@@ -18,7 +18,7 @@ static enum {
 }Ingredient_Columns;
 
 // Column values for recipes
-static enum {
+typedef enum {
     REC_COLUMN_NAME,
     REC_COLUMN_ID,
     REC_COLUMN_AVAILABLE,

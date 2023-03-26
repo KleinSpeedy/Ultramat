@@ -1,6 +1,7 @@
 /* This file populates the different stack pages. */
 
 #include "checks.h"
+#include "drinklists.h"
 #include "pages.h"
 #include "callbacks.h"
 #include "drinks.h"
@@ -12,6 +13,10 @@ static void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *d
 static void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm);
 static void populateStackPage_Three(GtkStack *mainStack);
 static void populateStackPage_Four(GtkStack *mainStack);
+
+// HACK: Find better way to pass handler IDs between callback and connection
+extern gulong g_handlerIds[6];
+extern gulong g_handlerIdOrderStart;
 
 /* function declaration */
 
@@ -127,13 +132,19 @@ void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
     gtk_editable_set_editable(GTK_EDITABLE(entryPos5), FALSE);
     gtk_editable_set_editable(GTK_EDITABLE(entryPos6), FALSE);
 
-    // register combo/entry callbacks, pass position as pointer!
-    g_signal_connect(comboPos1, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(1));
-    g_signal_connect(comboPos2, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(2));
-    g_signal_connect(comboPos3, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(3));
-    g_signal_connect(comboPos4, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(4));
-    g_signal_connect(comboPos5, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(5));
-    g_signal_connect(comboPos6, "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(6));
+    // connect callback handler IDs
+    g_handlerIds[0] = g_signal_connect(comboPos1, 
+            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(0));
+    g_handlerIds[1] = g_signal_connect(comboPos2, 
+            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(1));
+    g_handlerIds[2] = g_signal_connect(comboPos3, 
+            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(2));
+    g_handlerIds[3] = g_signal_connect(comboPos4, 
+            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(3));
+    g_handlerIds[4] = g_signal_connect(comboPos5, 
+            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(4));
+    g_handlerIds[5] = g_signal_connect(comboPos6, 
+            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(5));
 
     // make combo boxes big enough, makes everything else bigger too
     const int comboWidth = 200, comboHeight = 60;
@@ -145,12 +156,20 @@ void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
     gtk_widget_set_size_request(GTK_WIDGET(comboPos6), comboWidth, comboHeight);
 
     // make name column the one that gets displayed, id column the id column
-    gtk_combo_box_set_entry_text_column(comboPos1, 0);
-    gtk_combo_box_set_entry_text_column(comboPos2, 0);
-    gtk_combo_box_set_entry_text_column(comboPos3, 0);
-    gtk_combo_box_set_entry_text_column(comboPos4, 0);
-    gtk_combo_box_set_entry_text_column(comboPos5, 0);
-    gtk_combo_box_set_entry_text_column(comboPos6, 0);
+    gtk_combo_box_set_entry_text_column(comboPos1, ING_COLUMN_NAME);
+    gtk_combo_box_set_entry_text_column(comboPos2, ING_COLUMN_NAME);
+    gtk_combo_box_set_entry_text_column(comboPos3, ING_COLUMN_NAME);
+    gtk_combo_box_set_entry_text_column(comboPos4, ING_COLUMN_NAME);
+    gtk_combo_box_set_entry_text_column(comboPos5, ING_COLUMN_NAME);
+    gtk_combo_box_set_entry_text_column(comboPos6, ING_COLUMN_NAME);
+
+    // TODO: Must be of type G_TYPE_STRING
+    gtk_combo_box_set_id_column(comboPos1, ING_COLUMN_NAME);
+    gtk_combo_box_set_id_column(comboPos2, ING_COLUMN_NAME);
+    gtk_combo_box_set_id_column(comboPos3, ING_COLUMN_ID);
+    gtk_combo_box_set_id_column(comboPos4, ING_COLUMN_ID);
+    gtk_combo_box_set_id_column(comboPos5, ING_COLUMN_ID);
+    gtk_combo_box_set_id_column(comboPos6, ING_COLUMN_ID);
 
     // pack every widget into according box
     gtk_box_pack_start(boxPos1, GTK_WIDGET(labelPos1), TRUE, TRUE, 0);
@@ -229,6 +248,10 @@ void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
     CHECK_WIDGET(orderStartButton, "Start order toggle button");
 
     gtk_combo_box_set_entry_text_column(comboOrder, 0);
+
+    // pass ingredients list store to callback
+    g_handlerIdOrderStart = g_signal_connect(orderStartButton, "toggled",
+            G_CALLBACK(on_drink_order_toggle), dm->ingredientListStore);
 
     /* pack order widgets into page box and align properly */
     gtk_widget_set_size_request(GTK_WIDGET(comboOrder), 300, 70);

@@ -16,6 +16,7 @@ GtkListStore *create_ingredient_listStore(Ing_Array_t *ingArray)
 {
     // ingredient informations for list store 
     
+    //TODO: ID Column must be of type G_TYPE_STRING
     GtkListStore *ingListStore = GTK_LIST_STORE(gtk_list_store_new(
         ING_NUM_COLUMN,
         G_TYPE_STRING,
