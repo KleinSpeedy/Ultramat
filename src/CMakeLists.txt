@@ -1,5 +1,10 @@
 # Source level CMake File
-add_executable(ultramat main.c gui.c pages.c drinks.c drinkarray.c drinklists.c callbacks.c)
+add_executable(${PROJECT_NAME} main.c 
+    gui.c pages.c drinks.c drinkarray.c 
+    drinklists.c callbacks.c serialcom.c)
 
 # Link the target to the GTK+ libraries
-target_link_libraries(ultramat PRIVATE ${GTK3_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GTK3_LIBRARIES} periphery pthread)
+
+# Link to c-periphery lib headers
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/ext/c-periphery/src)
