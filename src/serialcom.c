@@ -18,18 +18,22 @@ static pthread_t serialListener;
 
 static bool threadRunning = false;
 
+
 static uint8_t
 serialcom_calculate_checksum()
 {
    return 0; 
 }
 
+// worker thread running until program exits
 static void *
 serialcom_thread_func()
 {
     while(threadRunning)
     {
     }
+    // TODO: Find something to return!
+    return NULL;
 }
 
 // start the serial handler thread
@@ -44,6 +48,7 @@ int serialcom_start_handler_thread()
     return ret;
 }
 
+// stop running serial thread
 void serialcom_stop_handler_thread()
 {
     threadRunning = false;
@@ -52,6 +57,13 @@ void serialcom_stop_handler_thread()
 
 /* serial communication */
 
+uint8_t *serialcom_prepare_buffer(uint8_t cmdValue, uint16_t data)
+{
+    uint8_t *txBuffer;
+
+}
+
+// send hello there to check for working connection
 int serialcom_initialize_connection()
 {
     serialHandle = serial_new();
@@ -93,7 +105,9 @@ int serialcom_initialize_connection()
     return 0;
 }
 
+// send arduino "soft" stop message 
 int serialcom_cancel_connection()
 {
+    // pass ingredients list store to callback
     return 0;
 }

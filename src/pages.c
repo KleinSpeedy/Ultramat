@@ -17,6 +17,7 @@ static void populateStackPage_Four(GtkStack *mainStack);
 // HACK: Find better way to pass handler IDs between callback and connection
 extern gulong g_handlerIds[6];
 extern gulong g_handlerIdOrderStart;
+extern gulong g_handlerIdComboOrder;
 
 /* function declaration */
 
@@ -163,14 +164,6 @@ void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
     gtk_combo_box_set_entry_text_column(comboPos5, ING_COLUMN_NAME);
     gtk_combo_box_set_entry_text_column(comboPos6, ING_COLUMN_NAME);
 
-    // TODO: Must be of type G_TYPE_STRING
-    gtk_combo_box_set_id_column(comboPos1, ING_COLUMN_NAME);
-    gtk_combo_box_set_id_column(comboPos2, ING_COLUMN_NAME);
-    gtk_combo_box_set_id_column(comboPos3, ING_COLUMN_ID);
-    gtk_combo_box_set_id_column(comboPos4, ING_COLUMN_ID);
-    gtk_combo_box_set_id_column(comboPos5, ING_COLUMN_ID);
-    gtk_combo_box_set_id_column(comboPos6, ING_COLUMN_ID);
-
     // pack every widget into according box
     gtk_box_pack_start(boxPos1, GTK_WIDGET(labelPos1), TRUE, TRUE, 0);
     gtk_box_pack_start(boxPos1, GTK_WIDGET(imagePos1), TRUE, TRUE, 0);
@@ -247,11 +240,14 @@ void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
     CHECK_WIDGET(comboOrder, "Order Combo Box");
     CHECK_WIDGET(orderStartButton, "Start order toggle button");
 
-    gtk_combo_box_set_entry_text_column(comboOrder, 0);
+    gtk_combo_box_set_entry_text_column(comboOrder, REC_COLUMN_NAME);
 
-    // pass ingredients list store to callback
+    g_handlerIdComboOrder = g_signal_connect(comboOrder, "changed",
+            G_CALLBACK(on_combo_order_changed), NULL);
+
+    // pass both ingredients and recipes so we can check if recipe is available
     g_handlerIdOrderStart = g_signal_connect(orderStartButton, "toggled",
-            G_CALLBACK(on_drink_order_toggle), dm->ingredientListStore);
+            G_CALLBACK(on_recipe_order_toggle), dm);
 
     /* pack order widgets into page box and align properly */
     gtk_widget_set_size_request(GTK_WIDGET(comboOrder), 300, 70);

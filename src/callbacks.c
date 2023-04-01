@@ -1,6 +1,11 @@
+/*
+ * Implements GTK Widget callbacks and neccessary "helper" functions.
+ */
+
 #include "callbacks.h"
 #include "drinkarray.h"
 #include "drinklists.h"
+#include "drinks.h"
 #include "serialcom.h"
 #include <stdint.h>
 #include <glib.h>
@@ -31,12 +36,45 @@ gulong g_handlerIdOrderStart;
 // handler id for motor switch
 gulong g_handlerIdMotorSwitch;
 
+// handler id for recipe order combo box
+gulong g_handlerIdComboOrder;
+
 // keep track of last items selected
 static GtkTreeIter *positionIters[6];
+// keep track of selected recipe
+static GtkTreeIter recipeIter;
 
 static gboolean MOTORS_ENABLED = FALSE;
+// check if initial recipe was selected
+static gboolean RECIPE_SELECTED = FALSE;
 
-/* PRIVATE FUNCTIONS */
+/* PRIVATE FUNCTION DECLARATION */
+
+static void show_error_msg(gchar *errorStr);
+
+static void cb_decision_replace();
+
+static void cb_decision_discard(
+        GtkComboBox *comboBox,
+        GtkTreeIter *activeIter,
+        gulong handlerId);
+
+static void apply_modal_decision(
+        gint decision,
+        GtkComboBox *comboBox,
+        GtkTreeIter *activeIter,
+        gulong handlerId,
+        guint position);
+
+static gint on_already_selected(gchar *name, gint position);
+
+static void cb_reset_toggle_status(GtkToggleButton *toggleButton);
+
+static gboolean cb_check_recipe(struct DrinkManagement *dm);
+
+static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, gint id);
+
+/* IMPLEMENTATION */
 
 // Show error msg if something goes wrong
 static void
@@ -60,6 +98,7 @@ show_error_msg(gchar *errorStr)
 static void
 cb_decision_replace()
 {
+    // to be implemented
 }
 
 // unset item of current combo box and reset text in GtkEntry
@@ -112,7 +151,7 @@ apply_modal_decision(gint decision,
     }
 }
 
-// popup message if row already selected
+// popup dialog window if row is already selected
 static gint
 on_already_selected(gchar *name, gint position)
 {
@@ -161,15 +200,59 @@ static void
 cb_set_switch_state(GtkSwitch *sw, gboolean newState)
 {
     g_signal_handler_block(sw, g_handlerIdMotorSwitch);
+    MOTORS_ENABLED = newState;
     gtk_switch_set_state(sw, newState);
     gtk_switch_set_active(sw, newState);
     g_signal_handler_unblock(sw, g_handlerIdMotorSwitch);
 }
 
+// check if all needed ingredients are currently selected
+static gboolean
+cb_check_recipe(struct DrinkManagement *dm)
+{
+    gboolean available = FALSE;
+    GtkListStore *ingStore = dm->ingredientListStore;
+    GtkListStore *recStore = dm->recipeListStore;
+
+    gint id;
+    gchar *name;
+    
+    // TODO: function is slow, find different solution!
+    if(!(gtk_list_store_iter_is_valid(recStore, &recipeIter)))
+    {
+        show_error_msg("Recipe entry is invalid!");
+        return FALSE;
+    }
+
+    gtk_tree_model_get(GTK_TREE_MODEL(recStore), &recipeIter,
+            REC_COLUMN_ID, &id,
+            REC_COLUMN_NAME, &name,
+            -1); // terminate
+
+    g_print("name: %s id: %d\n", name, id);
+    cb_check_ingredient_list(dm->recipeArray, id);
+
+    g_free(name);
+    return available;
+}
+
+// Iterate over ingredients list
+static gboolean
+cb_check_ingredient_list(Rec_Array_t *recArray, gint id)
+{
+    if(id < 0)
+        return FALSE;
+    // TODO: Drop recipe and ingredients data structures and implement
+    // custom gpointer to Recipe_t and Ingredient_t
+    Recipe_t recipe = get_at_rec_array(recArray, id-1);
+    g_print("RecName: %s RecID: %d\n", recipe.name, recipe.id);
+    return TRUE;
+}
+
 /* CALLBACK IMPLEMENTATIONS */
 
-// On changed signal get selected row and check whether entry is unique or not
-// update entry on success or open simple modal dialog if not unique
+// gets called when selecting a new ingredient and needs to handle reselction 
+// on a different position as well as discarding current selection
 void on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
     GtkTreeModel *comboModel;
@@ -257,74 +340,72 @@ gboolean
 on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
 {
     int ret;
-    MOTORS_ENABLED = state;
 
-    if(MOTORS_ENABLED)
+    // get out if everything is TRUE
+    if(MOTORS_ENABLED && state)
+        return TRUE;
+
+    // new activation
+    if(!MOTORS_ENABLED)
     {
-        ret = serialcom_initialize_connection();
-        if(!ret)
-        {
-            cb_set_switch_state(motorSwitch, state);
-        }
-        else
+        if((ret = serialcom_initialize_connection()) != 0)
         {
             cb_set_switch_state(motorSwitch, FALSE);
             show_error_msg("Unable to open serial connection\n"
                     "Check USB cable connection!");
         }
-    }
-    else
-    {
-        ret = serialcom_cancel_connection();
-        if(!ret)
+        else
         {
             cb_set_switch_state(motorSwitch, state);
         }
-        else
+    }
+    // new stop signal
+    else
+    {
+        if((ret = serialcom_cancel_connection()) != 0)
         {
-            // TODO: Which state to set?
+            cb_set_switch_state(motorSwitch, FALSE);
             show_error_msg("Unable to close serial connection!");
         }
+        else
+        {
+            cb_set_switch_state(motorSwitch, state);
+        }
     }
-    // prevent default handler from running
+    // prevents default handler from running
     return TRUE;
 }
 
+// sets currently selected recipe to active item
 void
-on_drink_order_toggle(GtkToggleButton *orderButton, gpointer data)
+on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
+{
+    // get model and active item
+    // comboModel = gtk_combo_box_get_model(comboBox);
+    gtk_combo_box_get_active_iter(comboBox, &recipeIter);
+}
+
+// gets called when starting a new mix and checks if all ingredients 
+// for the recipe are available, if so it needs to send the serial commands
+void
+on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
 {
     GtkTreeIter activeIter;
+    GtkTreeModel *tempModel;
 
-    if(MOTORS_ENABLED)
+    if(!MOTORS_ENABLED)
     {
-
-    }
-    else
-    {
+        // bail out if motor switch is not activated
         show_error_msg("Motors arent activated, start Serial first!");
         cb_reset_toggle_status(orderButton);
         return;
     }
+
     if(data)
     {
-        GtkListStore *ingListStore = data;
-        gboolean valid, selected;
-        gchar *drink;
+        struct DrinkManagement *dm = data;
 
-        valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(ingListStore),
-                &activeIter);
-
-        while(valid)
-        {
-            gtk_tree_model_get(GTK_TREE_MODEL(ingListStore), &activeIter,
-                    ING_COLUMN_NAME, &drink,
-                    ING_COLUMN_SELECTED, &selected,
-                    -1);
-            g_print("%s selected: %d \n", drink, selected);
-
-            valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(ingListStore),
-                        &activeIter);
-        }
+        cb_check_recipe(dm);
         cb_reset_toggle_status(orderButton);
     }
     else
