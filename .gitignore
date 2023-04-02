@@ -55,6 +55,7 @@ dkms.conf
 .vscode
 build
 .cache
+.idea
 
 # Glade autosave
 *.glade~
