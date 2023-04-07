@@ -1,0 +1,17 @@
+name: Ultramat-CI-CD
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  build:
+    
+    runs-on: ubuntu-22-04
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: dewit
+      run: ./dewit.sh
