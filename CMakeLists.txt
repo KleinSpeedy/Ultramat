@@ -8,7 +8,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Project Settings
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_SYSTEM_NAME Linux)
-    set(CMAKE_C_FLAGS "-rdynamic")
     
     # Resources
     set(RES
@@ -35,14 +34,8 @@ link_directories(${GTK3_LIBRARY_DIRS})
 set(BUILD_TESTS OFF CACHE BOOL "Build tests")
 add_subdirectory(ext/c-periphery)
 
-# Add other flags to the compiler
-add_definitions(${GTK3_CFLAGS_OTHER})
-
 # Include Files
 include_directories(inc)
 
 # Source files
 add_subdirectory(src)
-
-# TODO: target_compile_options doesnt work, fix with CMAKE_C_FLAGS
-#target_compile_options(ultramat PRIVATE -rdynamic)
