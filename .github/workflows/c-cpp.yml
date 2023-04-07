@@ -16,4 +16,4 @@ jobs:
           # Build docker file
           docker build -t docker-ultra-build .
           # Mount project
-          docker run -v $(PWD):/ultramat docker-ultra-build /bin/bash -c "cd ultramat && ./dewit.sh"
+          docker run -v $(pwd):/ultramat docker-ultra-build bash "./dewit.sh"
