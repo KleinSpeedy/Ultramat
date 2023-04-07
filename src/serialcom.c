@@ -18,7 +18,6 @@ static pthread_t serialListener;
 
 static bool threadRunning = false;
 
-
 static uint8_t
 serialcom_calculate_checksum()
 {

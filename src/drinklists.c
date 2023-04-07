@@ -2,7 +2,6 @@
  * from their respective arrays */
 
 #include "drinklists.h"
-#include "drinks.h"
 #include "checks.h"
 
 /* function implementation */
@@ -14,9 +13,6 @@
 */
 GtkListStore *create_ingredient_listStore(Ing_Array_t *ingArray)
 {
-    // ingredient informations for list store 
-    
-    //TODO: ID Column must be of type G_TYPE_STRING
     GtkListStore *ingListStore = GTK_LIST_STORE(gtk_list_store_new(
         ING_NUM_COLUMN,
         G_TYPE_STRING,
@@ -57,7 +53,6 @@ GtkListStore *create_ingredient_listStore(Ing_Array_t *ingArray)
 */
 GtkListStore *create_recipe_listStore(Rec_Array_t *recipeArray)
 {
-
     GtkListStore *recipeListStore = gtk_list_store_new(
         REC_NUM_COLUMNS,
         G_TYPE_STRING,

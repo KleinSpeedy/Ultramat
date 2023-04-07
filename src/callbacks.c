@@ -7,19 +7,19 @@
 #include "drinklists.h"
 #include "drinks.h"
 #include "serialcom.h"
-#include <stdint.h>
 #include <glib.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 // get access to main Window
 extern GtkWindow *g_mainWindow;
+// get access to drink data
+extern struct DrinkManagement *g_DrinkData;
 
 #define REPLACE GTK_RESPONSE_ACCEPT
 #define DISCARD GTK_RESPONSE_REJECT
 
-// Replace current text with nothing
+// Replace current text with default text
 #define RESET_TEXT "Zutat auswählen!"
 
 // error str buffer size
@@ -27,7 +27,6 @@ extern GtkWindow *g_mainWindow;
 
 // HACK?: make Handler IDs global
 // 6 IDs for 6 callbacks
-// TODO: make 6 a #define
 gulong g_handlerIds[6];
 
 // handler id for orderStart toggle button
@@ -45,8 +44,6 @@ static GtkTreeIter *positionIters[6];
 static GtkTreeIter recipeIter;
 
 static gboolean MOTORS_ENABLED = FALSE;
-// check if initial recipe was selected
-static gboolean RECIPE_SELECTED = FALSE;
 
 /* PRIVATE FUNCTION DECLARATION */
 
@@ -66,13 +63,13 @@ static void apply_modal_decision(
         gulong handlerId,
         guint position);
 
-static gint on_already_selected(gchar *name, gint position);
+static gint on_already_selected(gchar *name, guint position);
 
 static void cb_reset_toggle_status(GtkToggleButton *toggleButton);
 
-static gboolean cb_check_recipe(struct DrinkManagement *dm);
+static gboolean cb_check_recipe();
 
-static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, gint id);
+static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, guint id);
 
 /* IMPLEMENTATION */
 
@@ -98,7 +95,7 @@ show_error_msg(gchar *errorStr)
 static void
 cb_decision_replace()
 {
-    // to be implemented
+
 }
 
 // unset item of current combo box and reset text in GtkEntry
@@ -153,7 +150,7 @@ apply_modal_decision(gint decision,
 
 // popup dialog window if row is already selected
 static gint
-on_already_selected(gchar *name, gint position)
+on_already_selected(gchar *name, guint position)
 {
     GtkWidget *label, *content_area, *dialog;
     GtkWidget *buttonReplace, *buttonDiscard;
@@ -181,7 +178,7 @@ on_already_selected(gchar *name, gint position)
     // Add the label, and show everything we’ve added
     gtk_container_add(GTK_CONTAINER(content_area), label);
     gtk_widget_show_all(dialog);
-
+    // return modal dialog decision
     return gtk_dialog_run(GTK_DIALOG(dialog));
 }
 
@@ -208,15 +205,15 @@ cb_set_switch_state(GtkSwitch *sw, gboolean newState)
 
 // check if all needed ingredients are currently selected
 static gboolean
-cb_check_recipe(struct DrinkManagement *dm)
+cb_check_recipe()
 {
     gboolean available = FALSE;
-    GtkListStore *ingStore = dm->ingredientListStore;
-    GtkListStore *recStore = dm->recipeListStore;
+    GtkListStore *ingStore = g_DrinkData->ingredientListStore;
+    GtkListStore *recStore = g_DrinkData->recipeListStore;
 
-    gint id;
+    guint id;
     gchar *name;
-    
+
     // TODO: function is slow, find different solution!
     if(!(gtk_list_store_iter_is_valid(recStore, &recipeIter)))
     {
@@ -230,7 +227,7 @@ cb_check_recipe(struct DrinkManagement *dm)
             -1); // terminate
 
     g_print("name: %s id: %d\n", name, id);
-    cb_check_ingredient_list(dm->recipeArray, id);
+    cb_check_ingredient_list(g_DrinkData->recipeArray, id);
 
     g_free(name);
     return available;
@@ -238,20 +235,16 @@ cb_check_recipe(struct DrinkManagement *dm)
 
 // Iterate over ingredients list
 static gboolean
-cb_check_ingredient_list(Rec_Array_t *recArray, gint id)
+cb_check_ingredient_list(Rec_Array_t *recArray, guint id)
 {
-    if(id < 0)
-        return FALSE;
-    // TODO: Drop recipe and ingredients data structures and implement
-    // custom gpointer to Recipe_t and Ingredient_t
     Recipe_t recipe = get_at_rec_array(recArray, id-1);
-    g_print("RecName: %s RecID: %d\n", recipe.name, recipe.id);
+
     return TRUE;
 }
 
 /* CALLBACK IMPLEMENTATIONS */
 
-// gets called when selecting a new ingredient and needs to handle reselction 
+// gets called when selecting a new ingredient and needs to handle reselection
 // on a different position as well as discarding current selection
 void on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
@@ -268,7 +261,7 @@ void on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
     cbPosition = GPOINTER_TO_INT(data);
 
     // get current callback handler ID
-    if(cbPosition >= 0 && cbPosition < 6)
+    if(cbPosition < 6)
     {
         currentHandlerId = g_handlerIds[cbPosition];
     }
@@ -309,7 +302,7 @@ void on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
         // ingredient selected elsewhere
         if(cbPosition != rowPosition)
         {
-            gint decision = on_already_selected(name, rowPosition+1);
+            gint decision = on_already_selected(name, (gint)rowPosition + 1);
             apply_modal_decision(decision,
                     comboBox, &tempIter,
                     currentHandlerId, cbPosition);

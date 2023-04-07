@@ -56,4 +56,6 @@ void free_rec_array(Rec_Array_t *array);
 Recipe_t get_at_rec_array(Rec_Array_t *array, size_t pos);
 void set_at_rec_array(Rec_Array_t *array, size_t pos, Recipe_t rec);
 
+// TODO: ugly, find better solution
+
 #endif //__DRINKARRAY_H__

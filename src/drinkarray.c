@@ -169,3 +169,8 @@ void set_at_rec_array(Rec_Array_t *array, size_t position, Recipe_t ing)
         exit(1);
     }
 }
+
+bool recipe_is_available(Recipe_t *recipe)
+{
+
+}

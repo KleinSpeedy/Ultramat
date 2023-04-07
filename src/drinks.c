@@ -9,20 +9,20 @@
 #include "drinks.h"
 #include "drinkarray.h"
 
-#define INPUT_BUFFER 128
-const char *ingredientsFile = "res/ingredients.txt";
-const char *recipeFile = "res/recipes.txt";
+#define INPUT_BUFFER_SIZE 128
+const char * const ingredientsFile = "res/ingredients.txt";
+const char * const recipeFile = "res/recipes.txt";
 
 /* private function declarations */
 
-uint8_t convert_to_number(char *buffer, int start, int end);
+static uint8_t drinks_convert_to_number(char *buffer, int start, int end);
 
-void read_ingredients_from_file(Ing_Array_t *array);
-int get_ingredient_count();
+static void drinks_read_ingredients_from_file(Ing_Array_t *array);
+static int drinks_get_ingredient_count();
 
-void read_recipes_from_file(Rec_Array_t *array);
-uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer);
-int get_recipe_count();
+static void drinks_read_recipes_from_file(Rec_Array_t *array);
+static uint8_t drinks_read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer);
+static int drinks_get_recipe_count();
 
 /* function definitions */
 
@@ -33,10 +33,10 @@ int get_recipe_count();
 */
 Ing_Array_t *get_all_ingredients()
 {
-    int ingredientCount = get_ingredient_count();
+    int ingredientCount = drinks_get_ingredient_count();
 
     Ing_Array_t *ingredientsArray = create_ing_array(ingredientCount);
-    read_ingredients_from_file(ingredientsArray);
+    drinks_read_ingredients_from_file(ingredientsArray);
 
     return ingredientsArray;
 }
@@ -48,10 +48,10 @@ Ing_Array_t *get_all_ingredients()
 */
 Rec_Array_t *get_all_recipes()
 {
-    int recipeCount = get_recipe_count();
+    int recipeCount = drinks_get_recipe_count();
 
     Rec_Array_t *recipesArray = create_rec_array(recipeCount);
-    read_recipes_from_file(recipesArray);
+    drinks_read_recipes_from_file(recipesArray);
 
     return recipesArray;
 }
@@ -61,17 +61,17 @@ Rec_Array_t *get_all_recipes()
  * 
  * @param array stores all ingredients with name and id
  */
-void read_ingredients_from_file(Ing_Array_t *array)
+void drinks_read_ingredients_from_file(Ing_Array_t *array)
 {
-    char buffer[INPUT_BUFFER];
-    memset(buffer, 0, INPUT_BUFFER);
+    char buffer[INPUT_BUFFER_SIZE];
+    memset(buffer, 0, INPUT_BUFFER_SIZE);
     int index = 0, lastSemiColon = 0;
     bool nameRead = false;
 
     FILE *inputFile = fopen(ingredientsFile, "r");
     CHECK_FILE(inputFile, "ingredients.txt");
 
-    while(fgets(buffer, INPUT_BUFFER, inputFile))
+    while(fgets(buffer, INPUT_BUFFER_SIZE, inputFile))
     {
         for(int i = 0; buffer[i] != '\n'; i++)
         {
@@ -87,7 +87,7 @@ void read_ingredients_from_file(Ing_Array_t *array)
                 }
                 else
                 {
-                    uint8_t id = convert_to_number(buffer, lastSemiColon+1, i);
+                    uint8_t id = drinks_convert_to_number(buffer, lastSemiColon + 1, i);
                     array->ingredients[index].id = id;
                 }
             }
@@ -108,17 +108,17 @@ void read_ingredients_from_file(Ing_Array_t *array)
  * 
  * @param array stores all recipes with given parameters
  */
-void read_recipes_from_file(Rec_Array_t *array)
+void drinks_read_recipes_from_file(Rec_Array_t *array)
 {
-    char buffer[INPUT_BUFFER];
-    memset(buffer, 0, INPUT_BUFFER);
+    char buffer[INPUT_BUFFER_SIZE];
+    memset(buffer, 0, INPUT_BUFFER_SIZE);
     int index = 0, lastSemiColon = 0;
     bool nameRead = false, idRead = false;
 
     FILE *inputFile = fopen(recipeFile, "r");
     CHECK_FILE(inputFile, "recipes.txt");
 
-    while(fgets(buffer, INPUT_BUFFER, inputFile))
+    while(fgets(buffer, INPUT_BUFFER_SIZE, inputFile))
     {
         // allocate new recipe-ingredient list for current recipe
         DrinkTuple_t *currentRecipeList = (DrinkTuple_t *)malloc(sizeof(DrinkTuple_t));
@@ -138,14 +138,14 @@ void read_recipes_from_file(Rec_Array_t *array)
                     strncpy(name, buffer, i);
                     array->recipes[index].name = name;
                     nameRead = true;
-                    // save semi colon for indexing id and ing-list
+                    // save semicolon for indexing id and ing-list
                     lastSemiColon = i; 
                 }
                 else
                 {
                     if(!idRead)
                     {
-                        uint8_t id = convert_to_number(buffer, lastSemiColon+1, i);
+                        uint8_t id = drinks_convert_to_number(buffer, lastSemiColon + 1, i);
                         array->recipes[index].id = id;
                         idRead = true;
                         lastSemiColon = i;
@@ -155,7 +155,7 @@ void read_recipes_from_file(Rec_Array_t *array)
                         // enter only after reading both name and id
                         // pass string beginning !after! name and id
                         currentIngredientCount =
-                            read_recipe_ingredients(currentRecipeList, &buffer[lastSemiColon]);
+                                drinks_read_recipe_ingredients(currentRecipeList, &buffer[lastSemiColon]);
                         // read next recipe after done
                         break;
                     }
@@ -165,7 +165,7 @@ void read_recipes_from_file(Rec_Array_t *array)
         array->recipes[index].recipeTuples = currentRecipeList;
         array->recipes[index].ingredientCount = currentIngredientCount;
         array->recipes[index].available = false;     
-        
+
         index++;
         nameRead = false;
         idRead = false;
@@ -181,9 +181,8 @@ void read_recipes_from_file(Rec_Array_t *array)
  * @param buffer input string after recipe name and id
  * @return uint8_t ingredient count for the recipe 
  */
-uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer)
+uint8_t drinks_read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer)
 {
-    bool firstIngredient = true;
     int lastHit = 0, digitCount = 0;
     int ingCounter = 1, ingIndex = 0;
 
@@ -191,30 +190,19 @@ uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer)
 
     // array holds each ingredient id with given quantity
     DrinkTuple_t *recipeTuples = recipeIngredients;
-    DrinkTuple_t *temp;
 
-    for(int i = 0; buffer[i] != '\n'; i++)
+    for(int i = 0; buffer[i] != '\n'; ++i)
     {
         if(buffer[i] == ';' && buffer[i+1] != '\n')
         {
             lastHit = i + 1; // jump over SemiColon
-            for(int j = lastHit; buffer[j] != '-'; j++)
+            for(int j = lastHit; buffer[j] != '-'; ++j)
+            {
                 digitCount++;
-            
-            ingId = convert_to_number(buffer, lastHit, lastHit+digitCount);
+            }
 
-            // if not first ingredient reallocate new space
-            if(!firstIngredient)
-            {
-                temp = (DrinkTuple_t *)realloc(recipeTuples, sizeof(DrinkTuple_t) * ingCounter);
-                CHECK_ALLOC(temp);
-                recipeTuples = temp;
-                recipeTuples[ingIndex].id = ingId;
-            }
-            else
-            {
-                recipeTuples[ingIndex].id = ingId;
-            }
+            ingId = drinks_convert_to_number(buffer, lastHit, lastHit + digitCount);
+            recipeTuples[ingIndex].id = ingId;
 
             lastHit += digitCount;
             digitCount = 0;
@@ -222,10 +210,10 @@ uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer)
         if(buffer[i] == '-')
         {
             lastHit = i + 1; // jump over Dash
-            for(int j = lastHit; buffer[j] != ';'; j++)
+            for(int j = lastHit; buffer[j] != ';'; ++j)
                 digitCount++;
 
-            ingQuantity = convert_to_number(buffer, lastHit, lastHit+digitCount);
+            ingQuantity = drinks_convert_to_number(buffer, lastHit, lastHit + digitCount);
             recipeTuples[ingIndex].quantity = ingQuantity;            
             ingIndex++;
             ingCounter++;
@@ -245,16 +233,16 @@ uint8_t read_recipe_ingredients(DrinkTuple_t *recipeIngredients, char *buffer)
  * 
  * @return int - count
  */
-int get_ingredient_count()
+int drinks_get_ingredient_count()
 {
     int ingredientCount = 0;
-    char buffer[INPUT_BUFFER];
-    memset(buffer, 0, INPUT_BUFFER);
+    char buffer[INPUT_BUFFER_SIZE];
+    memset(buffer, 0, INPUT_BUFFER_SIZE);
     
     FILE *inputFile = fopen(ingredientsFile, "r");
     CHECK_FILE(inputFile, "ingredients.txt");
 
-    while(fgets(buffer, INPUT_BUFFER, inputFile))
+    while(fgets(buffer, INPUT_BUFFER_SIZE, inputFile))
     {
         ingredientCount++;
     }
@@ -268,16 +256,16 @@ int get_ingredient_count()
  * 
  * @return int - recipe count
  */
-int get_recipe_count()
+int drinks_get_recipe_count()
 {
     int recipeCount = 0;
-    char buffer[INPUT_BUFFER];
-    memset(buffer, 0, INPUT_BUFFER);
+    char buffer[INPUT_BUFFER_SIZE];
+    memset(buffer, 0, INPUT_BUFFER_SIZE);
     
     FILE *inputFile = fopen(recipeFile, "r");
     CHECK_FILE(inputFile, "recipes.txt");
 
-    while(fgets(buffer, INPUT_BUFFER, inputFile))
+    while(fgets(buffer, INPUT_BUFFER_SIZE, inputFile))
     {
         recipeCount++;
     }
@@ -294,7 +282,8 @@ int get_recipe_count()
  * @param end end of specific char number
  * @return uint8_t converted number
  */
-uint8_t convert_to_number(char *buffer, int start, int end)
+static uint8_t
+drinks_convert_to_number(char *buffer, int start, int end)
 {
     int convertedNumber = 0;
     int digitCount = end - start;
