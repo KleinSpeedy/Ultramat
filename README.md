@@ -1,3 +1,5 @@
+![build workflow](https://github.com/KleinSpeedy/Ultramat/actions/workflows/c-cpp.yml/badge.svg)
+
 # Ultramat
 ## Automatic Drink Dispenser Project
 
