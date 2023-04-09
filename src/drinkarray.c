@@ -12,7 +12,7 @@
  * @param size array size
  * @return Ing_Array_t*
  */
-Ing_Array_t *create_ing_array(size_t size)
+Ing_Array_t *ingredients_array_create(size_t size)
 {
     Ing_Array_t *temp = (Ing_Array_t *)malloc(sizeof(Ing_Array_t));
     CHECK_ALLOC(temp);
@@ -29,7 +29,7 @@ Ing_Array_t *create_ing_array(size_t size)
  * 
  * @param array 
  */
-void free_ing_array(Ing_Array_t *array)
+void ingredients_array_delete(Ing_Array_t *array)
 {
     if(array)
     {
@@ -55,7 +55,7 @@ void free_ing_array(Ing_Array_t *array)
  * @param position - position that the object is at
  * @return Ingredient_t 
  */
-Ingredient_t get_at_ing_array(Ing_Array_t *array, size_t position)
+Ingredient_t ingredients_get_at(Ing_Array_t *array, size_t position)
 {
     if(array && position < array->size)
     {
@@ -75,7 +75,7 @@ Ingredient_t get_at_ing_array(Ing_Array_t *array, size_t position)
  * @param position 
  * @param ing 
  */
-void set_at_ing_array(Ing_Array_t *array, size_t position, Ingredient_t ing)
+void ingredients_set_at(Ing_Array_t *array, size_t position, Ingredient_t ing)
 {
     if(array && position < array->size)
     {
@@ -94,7 +94,7 @@ void set_at_ing_array(Ing_Array_t *array, size_t position, Ingredient_t ing)
  * @param size array size
  * @return Rec_Array_t* 
  */
-Rec_Array_t *create_rec_array(size_t size)
+Rec_Array_t *recipe_array_create(size_t size)
 {
     Rec_Array_t *temp = (Rec_Array_t *)malloc(sizeof(Rec_Array_t));
     CHECK_ALLOC(temp);
@@ -111,7 +111,7 @@ Rec_Array_t *create_rec_array(size_t size)
  * 
  * @param array 
  */
-void free_rec_array(Rec_Array_t *array)
+void recipe_array_delete(Rec_Array_t *array)
 {
     if(array)
     {
@@ -137,7 +137,7 @@ void free_rec_array(Rec_Array_t *array)
  * @param position 
  * @return Recipe_t 
  */
-Recipe_t get_at_rec_array(Rec_Array_t *array, size_t position)
+Recipe_t recipe_get_at(Rec_Array_t *array, size_t position)
 {
     if(array && position < array->size)
     {
@@ -157,7 +157,7 @@ Recipe_t get_at_rec_array(Rec_Array_t *array, size_t position)
  * @param position 
  * @param ing 
  */
-void set_at_rec_array(Rec_Array_t *array, size_t position, Recipe_t ing)
+void recipe_set_at(Rec_Array_t *array, size_t position, Recipe_t ing)
 {
     if(array && position < array->size)
     {
@@ -168,9 +168,4 @@ void set_at_rec_array(Rec_Array_t *array, size_t position, Recipe_t ing)
         fprintf(stderr, "Error accessing array\n");
         exit(1);
     }
-}
-
-bool recipe_is_available(Recipe_t *recipe)
-{
-
 }

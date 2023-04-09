@@ -237,7 +237,9 @@ cb_check_recipe()
 static gboolean
 cb_check_ingredient_list(Rec_Array_t *recArray, guint id)
 {
-    Recipe_t recipe = get_at_rec_array(recArray, id-1);
+    Recipe_t recipe = recipe_get_at(recArray, id-1);
+
+    g_print("Recipe: %s ID: %d\n", recipe.name, recipe.id);
 
     return TRUE;
 }
@@ -246,7 +248,8 @@ cb_check_ingredient_list(Rec_Array_t *recArray, guint id)
 
 // gets called when selecting a new ingredient and needs to handle reselection
 // on a different position as well as discarding current selection
-void on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
+void
+on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
     GtkTreeModel *comboModel;
     GtkTreeIter tempIter;

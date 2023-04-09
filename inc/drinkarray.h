@@ -46,16 +46,14 @@ typedef struct recipe_array
 
 /* functions */
 
-Ing_Array_t *create_ing_array(size_t size);
-void free_ing_array(Ing_Array_t *array);
-Ingredient_t get_at_ing_array(Ing_Array_t *array, size_t pos);
-void set_at_ing_array(Ing_Array_t *array, size_t pos, Ingredient_t ing);
+Ing_Array_t *ingredients_array_create(size_t size);
+void ingredients_array_delete(Ing_Array_t *array);
+Ingredient_t ingredients_get_at(Ing_Array_t *array, size_t pos);
+void ingredients_set_at(Ing_Array_t *array, size_t pos, Ingredient_t ing);
 
-Rec_Array_t *create_rec_array(size_t size);
-void free_rec_array(Rec_Array_t *array);
-Recipe_t get_at_rec_array(Rec_Array_t *array, size_t pos);
-void set_at_rec_array(Rec_Array_t *array, size_t pos, Recipe_t rec);
-
-// TODO: ugly, find better solution
+Rec_Array_t *recipe_array_create(size_t size);
+void recipe_array_delete(Rec_Array_t *array);
+Recipe_t recipe_get_at(Rec_Array_t *array, size_t pos);
+void recipe_set_at(Rec_Array_t *array, size_t pos, Recipe_t rec);
 
 #endif //__DRINKARRAY_H__

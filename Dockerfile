@@ -8,8 +8,6 @@ WORKDIR /ultramat
 
 # Get GTK dependencies
 RUN apt-get update && apt-get -y --no-install-recommends install \
+    build-essential \
     gcc cmake git make pkg-config \
-    libgtk-3-0
-
-# Copy project files for building afterwards
-COPY . /ultramat
+    libgtk-3-0 libgtk-3-dev

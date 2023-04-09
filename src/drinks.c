@@ -35,7 +35,7 @@ Ing_Array_t *get_all_ingredients()
 {
     int ingredientCount = drinks_get_ingredient_count();
 
-    Ing_Array_t *ingredientsArray = create_ing_array(ingredientCount);
+    Ing_Array_t *ingredientsArray = ingredients_array_create(ingredientCount);
     drinks_read_ingredients_from_file(ingredientsArray);
 
     return ingredientsArray;
@@ -50,7 +50,7 @@ Rec_Array_t *get_all_recipes()
 {
     int recipeCount = drinks_get_recipe_count();
 
-    Rec_Array_t *recipesArray = create_rec_array(recipeCount);
+    Rec_Array_t *recipesArray = recipe_array_create(recipeCount);
     drinks_read_recipes_from_file(recipesArray);
 
     return recipesArray;

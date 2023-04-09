@@ -26,7 +26,7 @@ GtkListStore *create_ingredient_listStore(Ing_Array_t *ingArray)
     // copy data from ing array to list store
     for(gint i = 0; i < ingArray->size; i++)
     {
-        Ingredient_t current = get_at_ing_array(ingArray, i);
+        Ingredient_t current = ingredients_get_at(ingArray, i);
 
         gchar *gname = current.name;
         guint8 gid = current.id;
@@ -64,7 +64,7 @@ GtkListStore *create_recipe_listStore(Rec_Array_t *recipeArray)
 
     for(int i = 0; i < recipeArray->size; i++)
     {
-        Recipe_t current = get_at_rec_array(recipeArray, i);
+        Recipe_t current = recipe_get_at(recipeArray, i);
 
         gchar *gname = current.name;
         guint8 gid = current.id;
