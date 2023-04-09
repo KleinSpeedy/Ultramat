@@ -242,13 +242,6 @@ void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
 
     gtk_combo_box_set_entry_text_column(comboOrder, REC_COLUMN_NAME);
 
-    g_handlerIdComboOrder = g_signal_connect(comboOrder, "changed",
-            G_CALLBACK(on_combo_order_changed), NULL);
-
-    // pass both ingredients and recipes so we can check if recipe is available
-    g_handlerIdOrderStart = g_signal_connect(orderStartButton, "toggled",
-            G_CALLBACK(on_recipe_order_toggle), dm);
-
     /* pack order widgets into page box and align properly */
     gtk_widget_set_size_request(GTK_WIDGET(comboOrder), 300, 70);
     gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderHeaderlabel), TRUE, FALSE, 0);
@@ -270,6 +263,14 @@ void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
     CHECK_WIDGET(progressbarBox, "Progressbar Box");
     CHECK_WIDGET(progressbar, "Progressbar");
     CHECK_WIDGET(progressbarLabel, "Progressbar label");
+
+    /* Connect order-recipe combo box with callback */
+    g_handlerIdComboOrder = g_signal_connect(comboOrder, "changed",
+                                             G_CALLBACK(on_combo_order_changed), NULL);
+
+    // pass both ingredients and recipes so we can check if recipe is available
+    g_handlerIdOrderStart = g_signal_connect(orderStartButton, "toggled",
+                                             G_CALLBACK(on_recipe_order_toggle), dm);
 
     /* pack progressbar and label into own box and align properly */
     gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), FALSE, FALSE, 0);

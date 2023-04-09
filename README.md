@@ -47,10 +47,11 @@ Runs Executable.
 
 ### TODOS
 
+- Make `Ingredient_t` and `Recipe_t` a `G_TYPE_BOXED`
+
+---
+
 - Remove global variables in `gui.c`
 - Refactor `drinks.c`, `drinklist.c` and `drinkarray.c` 
-- Get rid of ingredient and array recipes and replace with 2D array?
-    - maybe add them to gtk list stores!
-- Determine wheter list store can replace "array data structure" entirely
 - Check for duplicate IDs while parsing recipes and ingredients
 - Implement cool images on page 1

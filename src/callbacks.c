@@ -51,15 +51,11 @@ static void show_error_msg(gchar *errorStr);
 
 static void cb_decision_replace();
 
-static void cb_decision_discard(
-        GtkComboBox *comboBox,
-        GtkTreeIter *activeIter,
-        gulong handlerId);
+static void cb_decision_discard(GtkComboBox *comboBox, gulong handlerId);
 
 static void apply_modal_decision(
         gint decision,
         GtkComboBox *comboBox,
-        GtkTreeIter *activeIter,
         gulong handlerId,
         guint position);
 
@@ -67,9 +63,9 @@ static gint on_already_selected(gchar *name, guint position);
 
 static void cb_reset_toggle_status(GtkToggleButton *toggleButton);
 
-static gboolean cb_check_recipe();
+static gboolean cb_check_recipe(struct DrinkManagement *dm);
 
-static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, guint id);
+static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id);
 
 /* IMPLEMENTATION */
 
@@ -100,17 +96,13 @@ cb_decision_replace()
 
 // unset item of current combo box and reset text in GtkEntry
 static void
-cb_decision_discard(GtkComboBox *comboBox,
-        GtkTreeIter *activeIter,
-        gulong handlerId)
+cb_decision_discard(GtkComboBox *comboBox, gulong handlerId)
 {
-    GtkTreeModel *tempModel = gtk_combo_box_get_model(comboBox);
-
-    // block signal emit so we are not resetting comboBox Entry
+    // block signal emit because we are setting active entry
     g_signal_handler_block(comboBox, handlerId);
 
     // Reset current entry text
-    gtk_combo_box_set_active_iter(comboBox, activeIter);
+    gtk_combo_box_set_active_iter(comboBox, NULL);
     GtkEntry *comboEntry = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboBox)));
     gtk_entry_set_text(comboEntry, RESET_TEXT);
 
@@ -121,7 +113,6 @@ cb_decision_discard(GtkComboBox *comboBox,
 static void
 apply_modal_decision(gint decision,
         GtkComboBox *comboBox,
-        GtkTreeIter *activeIter,
         gulong handlerId,
         guint position)
 {
@@ -137,12 +128,12 @@ apply_modal_decision(gint decision,
         case DISCARD:
         {
             g_print("Discard\n");
-            cb_decision_discard(comboBox, activeIter, handlerId);
+            cb_decision_discard(comboBox, handlerId);
             break;
         }
         default:
         {
-            show_error_msg("Unkonw decision value!");
+            show_error_msg("Unknown decision value!");
             break;
         }
     }
@@ -205,10 +196,9 @@ cb_set_switch_state(GtkSwitch *sw, gboolean newState)
 
 // check if all needed ingredients are currently selected
 static gboolean
-cb_check_recipe()
+cb_check_recipe(struct DrinkManagement *dm)
 {
     gboolean available = FALSE;
-    GtkListStore *ingStore = g_DrinkData->ingredientListStore;
     GtkListStore *recStore = g_DrinkData->recipeListStore;
 
     guint id;
@@ -226,8 +216,8 @@ cb_check_recipe()
             REC_COLUMN_NAME, &name,
             -1); // terminate
 
-    g_print("name: %s id: %d\n", name, id);
-    cb_check_ingredient_list(g_DrinkData->recipeArray, id);
+    // check if recipe is available
+    available = cb_check_ingredient_list(g_DrinkData->recipeArray, g_DrinkData->ingredientArray, id);
 
     g_free(name);
     return available;
@@ -235,11 +225,17 @@ cb_check_recipe()
 
 // Iterate over ingredients list
 static gboolean
-cb_check_ingredient_list(Rec_Array_t *recArray, guint id)
+cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id)
 {
-    Recipe_t recipe = recipe_get_at(recArray, id-1);
+    Recipe_t recipe = recipe_get_at(recArray, id);
 
-    g_print("Recipe: %s ID: %d\n", recipe.name, recipe.id);
+    g_print("Recipe: %s ID: %d count: %d\n", recipe.name, recipe.id, recipe.ingredientCount);
+
+    for(uint8_t i = 0; i < recipe.ingredientCount; ++i)
+    {
+        Ingredient_t ingredient = ingredients_get_at(ingArray, recipe.recipeTuples[i].id);
+        g_print("Ing: %s, available: %d\n", ingredient.name, ingredient.selected);
+    }
 
     return TRUE;
 }
@@ -252,8 +248,9 @@ void
 on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
     GtkTreeModel *comboModel;
-    GtkTreeIter tempIter;
+    GtkTreeIter activeIter;
 
+    // ingredient members
     gboolean selected;
     gchararray name;
 
@@ -285,14 +282,14 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
         gtk_tree_iter_free(positionIters[cbPosition]);
     }
 
-    if(!gtk_combo_box_get_active_iter(comboBox, &tempIter))
+    if(!gtk_combo_box_get_active_iter(comboBox, &activeIter))
     {
         show_error_msg("Couldnt fetch ingredients data!");
         return;
     }
 
     // fetch row data
-    gtk_tree_model_get(comboModel, &tempIter,
+    gtk_tree_model_get(comboModel, &activeIter,
             ING_COLUMN_NAME, &name,
             ING_COLUMN_SELECTED, &selected,
             ING_COLUMN_POSITION, &rowPosition,
@@ -305,28 +302,28 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
         // ingredient selected elsewhere
         if(cbPosition != rowPosition)
         {
+            // TODO: make this one function
             gint decision = on_already_selected(name, (gint)rowPosition + 1);
             apply_modal_decision(decision,
-                    comboBox, &tempIter,
-                    currentHandlerId, cbPosition);
+                    comboBox,currentHandlerId, cbPosition);
             return;
         }
         else
         {
-            // This shouldn't happen as reselecting shouldn't be possible
+            // This shouldn't happen as "reselecting" shouldn't be possible
             show_error_msg("Reselect Error!");
             return;
         }
     }
 
     //  Set position and selected
-    gtk_list_store_set(GTK_LIST_STORE(comboModel), &tempIter,
+    gtk_list_store_set(GTK_LIST_STORE(comboModel), &activeIter,
             ING_COLUMN_POSITION, cbPosition,
             ING_COLUMN_SELECTED, TRUE,
             -1);
 
     g_print("%s %d %d\n", name, selected, rowPosition);
-    positionIters[cbPosition] = gtk_tree_iter_copy(&tempIter);
+    positionIters[cbPosition] = gtk_tree_iter_copy(&activeIter);
 
     // Free necessary?
     g_free(name);
@@ -377,7 +374,6 @@ void
 on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
 {
     // get model and active item
-    // comboModel = gtk_combo_box_get_model(comboBox);
     gtk_combo_box_get_active_iter(comboBox, &recipeIter);
 }
 
@@ -401,8 +397,9 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     {
         struct DrinkManagement *dm = data;
 
-        cb_check_recipe(dm);
-        cb_reset_toggle_status(orderButton);
+        gboolean available = cb_check_recipe(dm);
+        if(!available)
+            cb_reset_toggle_status(orderButton);
     }
     else
     {
