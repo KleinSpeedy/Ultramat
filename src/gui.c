@@ -12,11 +12,11 @@
 /* "private" function declaration */
 
 // create the main Window and main vertical box
-void createMainWindow();
+static void createMainWindow();
 // create the main stack that holds the different pages
-void createWindowStack();
+static void createWindowStack();
 // create the header line with stack-switcher, title and motor switch
-void createTopHeader();
+static void createTopHeader();
 
 /* Widgets and Variables */
 
@@ -29,9 +29,6 @@ struct DrinkManagement *g_DrinkData;
 
 // HACK: get handler id for motor switch
 extern gulong g_handlerIdMotorSwitch;
-
-const int g_width = 1280;
-const int g_height = 800;
 
 /* function definitions */
 
@@ -84,7 +81,7 @@ void guiHandler(int argc, char **argv)
     recipe_array_delete(recipeArray);
 }
 
-void createMainWindow()
+static void createMainWindow()
 {
     /* Main window */
     g_mainWindow = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
@@ -94,7 +91,7 @@ void createMainWindow()
     gtk_window_set_title(g_mainWindow, "Ultramat Projekt");
     gtk_window_set_position(g_mainWindow, GTK_WIN_POS_CENTER_ALWAYS);
     gtk_window_set_resizable(g_mainWindow, FALSE);
-    gtk_window_set_default_size(g_mainWindow, g_width, g_height);
+    gtk_window_set_default_size(g_mainWindow, WIN_WIDTH, WIN_HEIGHT);
     g_signal_connect(g_mainWindow, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     /* vertical orientation for header line and stack pages */
@@ -104,19 +101,19 @@ void createMainWindow()
     gtk_container_add(GTK_CONTAINER(g_mainWindow), GTK_WIDGET(g_mainBox));
 }
 
-void createWindowStack()
+static void createWindowStack()
 {
     /* Stack holds different pages */
     g_mainStack = GTK_STACK(gtk_stack_new());
     CHECK_WIDGET(g_mainStack, "Main Stack");
 
     gtk_stack_set_transition_type(g_mainStack, GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
-    gtk_stack_set_transition_duration(g_mainStack, 250 /*ms*/);
+    gtk_stack_set_transition_duration(g_mainStack, TRANSITION_SPEED);
 
     gtk_box_pack_start(g_mainBox, GTK_WIDGET(g_mainStack), TRUE, TRUE, 0);
 }
 
-void createTopHeader()
+static void createTopHeader()
 {
     /* Fixed Container for placement */
     GtkFixed *headerFixed = GTK_FIXED(gtk_fixed_new());
