@@ -6,6 +6,7 @@
 #define __RECIPE_H__
 
 #include <glib-object.h>
+#include "ingredient.h"
 
 G_BEGIN_DECLS
 
@@ -31,6 +32,10 @@ u_recipe_set_available(URecipe *self, gboolean toSet);
 
 URecipe *
 u_recipe_new(gchar *name, guint id, gboolean available);
+
+/* Manage list of Ingredients of each recipe as GLib LinkedList */
+gboolean
+u_recipe_append_ingredient(URecipe *rec, UIngredient *ing, guint8 quantity);
 
 G_END_DECLS
 
