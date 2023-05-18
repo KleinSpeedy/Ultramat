@@ -8,7 +8,13 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Project Settings
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_SYSTEM_NAME Linux)
-    
+
+    # Compiler options
+    set(ULTRAMAT_OPTIONS
+            "-O3"
+            "-Wall"
+            "-Wextra")
+
     # Resources
     set(RES
         ./res/ingredients.txt
