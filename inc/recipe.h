@@ -30,6 +30,7 @@ gboolean
 u_recipe_is_available(URecipe *self);
 void
 u_recipe_set_available(URecipe *self, gboolean toSet);
+
 guint
 u_recipe_get_ingredient_count(URecipe *self);
 

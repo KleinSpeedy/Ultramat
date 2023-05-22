@@ -85,6 +85,42 @@ u_recipe_info_delete(struct RecipeInfo *info)
     free(info);
 }
 
+/**
+ * @brief GFunc for ingredients GList checking if all ingredients are selected
+ * @param data RecipeInfo
+ * @param userData available boolean
+ */
+static void
+u_recipe_list_check_available(gpointer data, gpointer userData)
+{
+    struct RecipeInfo *info = (struct RecipeInfo *)data;
+    gboolean available = GPOINTER_TO_INT(userData);
+
+    if(!info)
+    {
+        g_log(ULTRA_LOG, G_LOG_LEVEL_WARNING,
+              "RecipeInfo in GList is NULL!");
+        available = FALSE;
+    }
+    if(u_ingredient_get_selected(info->ing))
+        available = TRUE;
+    else
+        available = FALSE;
+}
+
+/**
+ * @brief Iterate over all ingredients and check if available
+ * @param rec Recipe
+ * @return TRUE if available, FALSE otherwise
+ */
+static gboolean
+u_recipe_check_available(URecipe *rec)
+{
+    gboolean available = FALSE;
+    g_list_foreach(rec->ingredients, u_recipe_list_check_available, &available);
+    return available;
+}
+
 /* ========== Public ========== */
 
 gchar *
@@ -125,7 +161,7 @@ u_recipe_is_available(URecipe *self)
 {
     if(!self)
         return FALSE;
-    return self->available;
+    return u_recipe_check_available(self);
 }
 
 void
