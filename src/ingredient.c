@@ -7,7 +7,7 @@
 
 struct _UIngredient
 {
-    GObject parent;
+    GObject parent_instance;
 
     gchar *name;        /* Name of ingredient */
     guint id;           /* ingredient identifier */
@@ -23,14 +23,18 @@ u_ingredient_class_init(UIngredientClass *class)
 }
 
 static void
-u_ingredient_init(UIngredient *ing)
+u_ingredient_init(UIngredient *self)
 {
+    // Default values
+    self->name = g_strdup("");
+    self->id = 0;
+    self->position = 0;
+    self->selected = FALSE;
 }
 
 guint
 u_ingredient_get_id(UIngredient *self)
 {
-    g_assert_nonnull(self);
     if(!self)
         return 0;
     return self->id;
@@ -39,7 +43,6 @@ u_ingredient_get_id(UIngredient *self)
 void
 u_ingredient_set_id(UIngredient *self, guint id)
 {
-    g_assert_nonnull(self);
     if(!self)
         return;
     self->id = id;
@@ -48,7 +51,6 @@ u_ingredient_set_id(UIngredient *self, guint id)
 guint8
 u_ingredient_get_position(UIngredient *self)
 {
-    g_assert_nonnull(self);
     if(!self)
         return 0;
     return self->position;
@@ -56,7 +58,6 @@ u_ingredient_get_position(UIngredient *self)
 void
 u_ingredient_set_position(UIngredient *self, guint8 pos)
 {
-    g_assert_nonnull(self);
     if(!self)
         return;
     self->position = pos;
@@ -65,7 +66,6 @@ u_ingredient_set_position(UIngredient *self, guint8 pos)
 gboolean
 u_ingredient_get_selected(UIngredient *self)
 {
-    g_assert_nonnull(self);
     if(!self)
         return FALSE;
     return self->selected;
@@ -73,7 +73,6 @@ u_ingredient_get_selected(UIngredient *self)
 void
 u_ingredient_set_selected(UIngredient *self, gboolean toSet)
 {
-    g_assert_nonnull(self);
     if(!self)
         return;
     self->selected = toSet;
@@ -82,7 +81,6 @@ u_ingredient_set_selected(UIngredient *self, gboolean toSet)
 const
 gchar *u_ingredient_get_name(UIngredient *self)
 {
-    g_assert_nonnull(self);
     if(!self)
         return "";
     return self->name;
@@ -90,10 +88,11 @@ gchar *u_ingredient_get_name(UIngredient *self)
 void
 u_ingredient_set_name(UIngredient *self, gchar *name)
 {
-    g_assert_nonnull(self);
-    if(!self)
-        return;
-    self->name = name;
+    if(g_strcmp0(name, self->name) == 0)
+    {
+        g_free(self->name);
+        self->name = g_strdup(name);
+    }
 }
 
 UIngredient  *
@@ -101,11 +100,30 @@ u_ingredient_new(gchar *name, guint id, guint8 position, gboolean selected)
 {
     UIngredient *ing;
     ing = g_object_new(U_TYPE_INGREDIENT, NULL);
-    g_assert_nonnull(ing);
 
-    ing->name = name;
+    ing->name = g_strdup(name);
+    g_free(name);
     ing->id = id;
     ing->position = position;
     ing->selected = selected;
     return ing;
 }
+
+#ifdef ULTRA_DEBUG
+#include <stdio.h>
+
+void
+dbg_print_ingredient(UIngredient *ing)
+{
+    if(!ing)
+    {
+        fprintf(stderr, "Object is null!\n");
+    }
+    printf("Name: %s ID: %d Pos: %d Sel: %d\n",
+           ing->name,
+           ing->id,
+           ing->position,
+           ing->selected);
+}
+
+#endif // ULTRA_DEBUG

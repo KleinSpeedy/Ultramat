@@ -29,8 +29,8 @@ u_ingredient_get_selected(UIngredient *self);
 void
 u_ingredient_set_selected(UIngredient *self, gboolean toSet);
 
-const
-gchar *u_ingredient_get_name(UIngredient *self);
+const gchar *
+u_ingredient_get_name(UIngredient *self);
 void
 u_ingredient_set_name(UIngredient *self, gchar *name);
 
@@ -38,5 +38,10 @@ UIngredient  *
 u_ingredient_new(gchar *name, guint id, guint8 position, gboolean selected);
 
 G_END_DECLS
+
+#ifdef ULTRA_DEBUG
+void
+dbg_print_ingredient(UIngredient *ing);
+#endif // ULTRA_DEBUG
 
 #endif //__INGREDIENT_H__

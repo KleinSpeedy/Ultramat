@@ -7,6 +7,7 @@
 
 #include <glib-object.h>
 #include "ingredient.h"
+#include <glib/glist.h>
 
 G_BEGIN_DECLS
 
@@ -29,6 +30,8 @@ gboolean
 u_recipe_is_available(URecipe *self);
 void
 u_recipe_set_available(URecipe *self, gboolean toSet);
+guint
+u_recipe_get_ingredient_count(URecipe *self);
 
 URecipe *
 u_recipe_new(gchar *name, guint id, gboolean available);
@@ -39,4 +42,8 @@ u_recipe_append_ingredient(URecipe *rec, UIngredient *ing, guint8 quantity);
 
 G_END_DECLS
 
+#ifdef ULTRA_DEBUG
+void
+dbg_print_recipe(URecipe *rec);
+#endif // ULTRA_DEBUG
 #endif //__RECIPE_H__
