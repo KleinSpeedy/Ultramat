@@ -4,13 +4,12 @@
 #include "drinklists.h"
 #include "pages.h"
 #include "callbacks.h"
-#include "drinks.h"
 #include <glib.h>
 
 /* "private" function declaration */
 
-static void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm);
-static void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm);
+static void populateStackPage_One(GtkStack *mainStack);
+static void populateStackPage_Two(GtkStack *mainStack);
 static void populateStackPage_Three(GtkStack *mainStack);
 static void populateStackPage_Four(GtkStack *mainStack);
 
@@ -21,10 +20,10 @@ extern gulong g_handlerIdComboOrder;
 
 /* function declaration */
 
-void createStackPages(GtkStack *mainStack, struct DrinkManagement *dm)
+void createStackPages(GtkStack *mainStack)
 {
-    populateStackPage_One(mainStack, dm);
-    populateStackPage_Two(mainStack, dm);
+    populateStackPage_One(mainStack);
+    populateStackPage_Two(mainStack);
     populateStackPage_Three(mainStack);
 }
 
@@ -35,7 +34,7 @@ void createStackPages(GtkStack *mainStack, struct DrinkManagement *dm)
  * @param ingListStore 
  * @param ingArray
  */
-void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
+void populateStackPage_One(GtkStack *mainStack)
 {
     GtkBox *pageOneBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     CHECK_WIDGET(pageOneBox, "Page 1 Box");
@@ -54,7 +53,7 @@ void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
 
     /* 6 possible drinks, each consists of a Label, a Image and a Combo Box */
 
-    GtkTreeModel *ingListModel = GTK_TREE_MODEL(dm->ingredientListStore);
+    GtkTreeModel *ingListModel = GTK_TREE_MODEL(lists_ingredient_store());
 
     GtkBox *boxPos1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkImage *imagePos1 = GTK_IMAGE(gtk_image_new());
@@ -208,7 +207,7 @@ void populateStackPage_One(GtkStack *mainStack, struct DrinkManagement *dm)
  * @param mainStack 
  * @param recListStore 
  */
-void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
+void populateStackPage_Two(GtkStack *mainStack)
 {
     GtkBox *pageTwoBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     CHECK_WIDGET(pageTwoBox, "Page two box");
@@ -229,7 +228,7 @@ void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
 
     /* Use left side of page 2 for ordering a drink, pack them in Box */
 
-    GtkTreeModel *listModel = GTK_TREE_MODEL(dm->recipeListStore);
+    GtkTreeModel *listModel = GTK_TREE_MODEL(lists_recipe_store());
 
     GtkBox *boxComboOrder = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
     GtkLabel *orderHeaderlabel = GTK_LABEL(gtk_label_new("Drink auswählen:"));
@@ -268,9 +267,8 @@ void populateStackPage_Two(GtkStack *mainStack, struct DrinkManagement *dm)
     g_handlerIdComboOrder = g_signal_connect(comboOrder, "changed",
                                              G_CALLBACK(on_combo_order_changed), NULL);
 
-    // pass both ingredients and recipes so we can check if recipe is available
     g_handlerIdOrderStart = g_signal_connect(orderStartButton, "toggled",
-                                             G_CALLBACK(on_recipe_order_toggle), dm);
+                                             G_CALLBACK(on_recipe_order_toggle), NULL);
 
     /* pack progressbar and label into own box and align properly */
     gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), FALSE, FALSE, 0);

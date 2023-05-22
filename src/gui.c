@@ -6,8 +6,6 @@
 #include "checks.h"
 #include "gui.h"
 #include "pages.h"
-#include "drinks.h"
-#include "drinklists.h"
 
 /* "private" function declaration */
 
@@ -25,7 +23,6 @@ GtkBox *g_mainBox;
 GtkStack *g_mainStack;
 GtkStackSwitcher *g_mainStackSwitcher;
 GtkSwitch *g_mainMotorSwitch;
-struct DrinkManagement *g_DrinkData;
 
 // HACK: get handler id for motor switch
 extern gulong g_handlerIdMotorSwitch;
@@ -46,26 +43,8 @@ void guiHandler(int argc, char **argv)
     createTopHeader();
     gtk_box_reorder_child(g_mainBox, GTK_WIDGET(g_mainStack), 1);
 
-    // create drink data structures for use in callbacks
-    Ing_Array_t *ingredientsArray = get_all_ingredients();
-    Rec_Array_t *recipeArray = get_all_recipes();
-
-    GtkListStore *ingListStore = create_ingredient_listStore(ingredientsArray);
-    GtkListStore *recListStore = create_recipe_listStore(recipeArray);
-
-    struct DrinkManagement dm = {
-        ingredientsArray,
-        recipeArray,
-        ingListStore,
-        recListStore
-    };
-
-    // TODO: Find better solution than global extern
-    // dm is local, only works because program ends with return of gtk_main()
-    g_DrinkData = &dm;
-
     /* Stack pages */
-    createStackPages(g_mainStack, g_DrinkData);
+    createStackPages(g_mainStack);
 
     /* apply style.css to window */
     gtk_style_context_add_provider_for_screen(
@@ -76,9 +55,6 @@ void guiHandler(int argc, char **argv)
     gtk_widget_show_all(GTK_WIDGET(g_mainWindow));
 
     gtk_main();
-
-    ingredients_array_delete(ingredientsArray);
-    recipe_array_delete(recipeArray);
 }
 
 static void createMainWindow()
