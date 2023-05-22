@@ -2,7 +2,6 @@
 #define __DRINKLISTS_H__
 
 #include <gtk/gtk.h>
-#include "drinkarray.h"
 #include "recipe.h"
 
 /* Main control for ingredients and recipes 

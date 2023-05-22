@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <gtk/gtk.h>
-#include "drinkarray.h"
 #include "recipe.h"
 
 /* functions */
@@ -16,9 +15,6 @@ typedef enum
 
     DRINKS_STATUS_NUM
 } InputStatus_t;
-
-Ing_Array_t *get_all_ingredients();
-Rec_Array_t *get_all_recipes();
 
 guint
 drinks_io_get_num_ingredients();

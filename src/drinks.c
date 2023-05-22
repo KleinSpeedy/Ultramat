@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include "checks.h"
 #include "drinks.h"
-#include "drinkarray.h"
 #include "drinklists.h"
 
 #define INPUT_BUFFER_SIZE 128
