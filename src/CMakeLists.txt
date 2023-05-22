@@ -11,3 +11,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/ext/c-per
 
 # Add compile options to target
 target_compile_options(${PROJECT_NAME} PRIVATE ${ULTRAMAT_OPTIONS})
+
+# TODO: Add Debug build option

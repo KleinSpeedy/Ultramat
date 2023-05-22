@@ -3,6 +3,8 @@
 
 /* helper tools */
 
+//TODO: Introduce better error handling than exit(1)!
+
 // check if Widget created successfully, exit if not
 #define CHECK_WIDGET(x,name) \
     do { if(!x){ fprintf(stderr, "Couldn't create %s!\n", name); exit(1);} } while(0)

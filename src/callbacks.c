@@ -3,9 +3,7 @@
  */
 
 #include "callbacks.h"
-#include "drinkarray.h"
 #include "drinklists.h"
-#include "drinks.h"
 #include "serialcom.h"
 #include <glib.h>
 #include <stdio.h>
@@ -13,8 +11,6 @@
 
 // get access to main Window
 extern GtkWindow *g_mainWindow;
-// get access to drink data
-extern struct DrinkManagement *g_DrinkData;
 
 #define REPLACE GTK_RESPONSE_ACCEPT
 #define DISCARD GTK_RESPONSE_REJECT
@@ -63,9 +59,9 @@ static gint on_already_selected(gchar *name, guint position);
 
 static void cb_reset_toggle_status(GtkToggleButton *toggleButton);
 
-static gboolean cb_check_recipe(struct DrinkManagement *dm);
+static gboolean cb_check_recipe();
 
-static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id);
+static gboolean cb_check_ingredient_list();
 
 /* IMPLEMENTATION */
 
@@ -91,7 +87,6 @@ show_error_msg(gchar *errorStr)
 static void
 cb_decision_replace()
 {
-
 }
 
 // unset item of current combo box and reset text in GtkEntry
@@ -196,10 +191,10 @@ cb_set_switch_state(GtkSwitch *sw, gboolean newState)
 
 // check if all needed ingredients are currently selected
 static gboolean
-cb_check_recipe(struct DrinkManagement *dm)
+cb_check_recipe()
 {
     gboolean available = FALSE;
-    GtkListStore *recStore = g_DrinkData->recipeListStore;
+    GtkListStore *recStore = lists_recipe_store();
 
     guint id;
     gchar *name;
@@ -210,33 +205,31 @@ cb_check_recipe(struct DrinkManagement *dm)
         show_error_msg("Recipe entry is invalid!");
         return FALSE;
     }
-
+    /* TODO: Whats this?
     gtk_tree_model_get(GTK_TREE_MODEL(recStore), &recipeIter,
             REC_COLUMN_ID, &id,
             REC_COLUMN_NAME, &name,
             -1); // terminate
-
+    */
     // check if recipe is available
-    available = cb_check_ingredient_list(g_DrinkData->recipeArray, g_DrinkData->ingredientArray, id);
+    available = cb_check_ingredient_list();
 
-    g_free(name);
+    //g_free(name);
     return available;
 }
 
 // Iterate over ingredients list
 static gboolean
-cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id)
+cb_check_ingredient_list()
 {
-    Recipe_t recipe = recipe_get_at(recArray, id);
-
-    g_print("Recipe: %s ID: %d count: %d\n", recipe.name, recipe.id, recipe.ingredientCount);
-
+    g_print("Check ingredient list\n");
+/*
     for(uint8_t i = 0; i < recipe.ingredientCount; ++i)
     {
         Ingredient_t ingredient = ingredients_get_at(ingArray, recipe.recipeTuples[i].id);
         g_print("Ing: %s, available: %d\n", ingredient.name, ingredient.selected);
     }
-
+*/
     return TRUE;
 }
 
@@ -247,6 +240,7 @@ cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id)
 void
 on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
+    /*
     GtkTreeModel *comboModel;
     GtkTreeIter activeIter;
 
@@ -327,6 +321,7 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 
     // Free necessary?
     g_free(name);
+     */
 }
 
 gboolean
@@ -395,9 +390,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
 
     if(data)
     {
-        struct DrinkManagement *dm = data;
-
-        gboolean available = cb_check_recipe(dm);
+        gboolean available = cb_check_recipe();
         if(!available)
             cb_reset_toggle_status(orderButton);
     }
