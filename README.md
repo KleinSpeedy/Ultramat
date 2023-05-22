@@ -51,7 +51,7 @@ Runs Executable.
 
 ### TODOS
 
-- 
+- Introduce **position property** and connect it to ComboBox/ComboModel
 - Remove global variables in `gui.c`
 - Check for duplicate IDs while parsing recipes and ingredients
 - Implement cool images on page 1

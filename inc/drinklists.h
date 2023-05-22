@@ -23,10 +23,12 @@ typedef enum {
     REC_NUM_COLUMNS
 }Recipe_Columns;
 
+/* TODO: Where to put these functions? Duplicate implementation in recipe/ingredient.c ?
 gboolean
 lists_ingredient_is_selected();
 gboolean
 lists_recipe_is_available();
+*/
 
 // Create new Ingredients list store
 void
