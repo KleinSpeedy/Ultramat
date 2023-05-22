@@ -20,8 +20,13 @@ and
 
 - `git clone https://github.com/KleinSpeedy/Ultramat.git`
 - `git clone https://github.com/KleinSpeedy/Ultramat-Arduino.git`
+- Install MS-VSCode C++ Extension Pack
 - `cd Ultramat` and open VSCode in the project directory
 - Add Ultramat-Arduino Folder to VSC-Workspace
+
+**Using CLion or Neovim:**
+
+- Build project using CMake as this creates needed json for clangd
 
 ---
 ### Dependencies
@@ -29,7 +34,6 @@ and
 
 - [GTK Setup for Linux](https://www.gtk.org/docs/installations/linux)
 - Install all Dependencies
-- Install MS-VSCode C++ Extension Pack
 
 **Arduino Repo:**
 
@@ -47,11 +51,7 @@ Runs Executable.
 
 ### TODOS
 
-- Make `Ingredient_t` and `Recipe_t` a `G_TYPE_BOXED`
-
----
-
+- 
 - Remove global variables in `gui.c`
-- Refactor `drinks.c`, `drinklist.c` and `drinkarray.c` 
 - Check for duplicate IDs while parsing recipes and ingredients
 - Implement cool images on page 1
