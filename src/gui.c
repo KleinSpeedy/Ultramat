@@ -65,7 +65,7 @@ static void createMainWindow()
 
     /* Window Attributes and signals */
     gtk_window_set_title(g_mainWindow, "Ultramat Projekt");
-    gtk_window_set_position(g_mainWindow, GTK_WIN_POS_CENTER_ALWAYS);
+    gtk_window_set_position(g_mainWindow, GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(g_mainWindow, FALSE);
     gtk_window_set_default_size(g_mainWindow, WIN_WIDTH, WIN_HEIGHT);
     g_signal_connect(g_mainWindow, "destroy", G_CALLBACK(gtk_main_quit), NULL);

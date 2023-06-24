@@ -73,7 +73,7 @@ lists_ingredient_append(UIngredient *ing)
  * @return Pointer to Ingredient with ID or NULL on failure
  */
 UIngredient *
-lists_get_ingredient_by_id(guint ingID)
+lists_ingredient_get_by_id(guint ingID)
 {
     gboolean valid;
 
@@ -99,6 +99,69 @@ lists_get_ingredient_by_id(guint ingID)
 }
 
 /**
+ * @brief Check whether the position is already held by a ingredient
+ * @param position combo position
+ * @return Ingredient on position or NULL
+ */
+UIngredient *
+lists_ingredient_get_by_position(guint8 position)
+{
+    g_print("Searching for ingredient with position: %d\n", position);
+    gboolean valid = FALSE;
+
+    GtkTreeModel *ingTreeModel = GTK_TREE_MODEL(ingListStore);
+    GtkTreeIter activeIter;
+    // search through ingredients until one has the position and return it or NULL if no one has position
+    valid = gtk_tree_model_get_iter_first(ingTreeModel, &activeIter);
+
+    while(valid)
+    {
+        UIngredient *searched;
+        gtk_tree_model_get(ingTreeModel, &activeIter,
+                           ING_COLUMN_OBJECT, &searched,
+                           -1); // terminate
+        if(u_ingredient_get_position(searched) == position)
+        {
+            return searched;
+        }
+        valid = gtk_tree_model_iter_next(ingTreeModel, &activeIter);
+    }
+    // no ingredient has the searched position
+    return NULL;
+}
+
+/**
+ * @brief look up whether the specified position currently holds an ingredient
+ * @note The TreeIter needs to be freed after use
+ * @param position of combo box
+ * @return Iter of position or NULL if position has no ingredient
+ */
+GtkTreeIter *
+lists_iter_get_by_position(gint8 position)
+{
+    GtkTreeModel *ingModel = GTK_TREE_MODEL(ingListStore);
+    GtkTreeIter activeIter;
+    gboolean valid;
+
+    valid = gtk_tree_model_get_iter_first(ingModel, &activeIter);
+    while(valid)
+    {
+        UIngredient *searched;
+        gtk_tree_model_get(ingModel, &activeIter,
+                           ING_COLUMN_OBJECT, &searched,
+                           -1); // terminate
+        // Check if position has an ingredient, if so it's the one were looking for
+        if(u_ingredient_get_position(searched) == position)
+        {
+            return gtk_tree_iter_copy(&activeIter);
+        }
+        valid = gtk_tree_model_iter_next(ingModel, &activeIter);
+    }
+    // Position holds no ingredient
+    return NULL;
+}
+
+/**
  * @brief Appends new recipe to recipes store and saves name as well
  * @TODO Name gets copied, duplicate memory!
  * @param ing New recipe
@@ -113,6 +176,52 @@ lists_recipe_append(URecipe *rec)
                         REC_COLUMN_NAME, name,
                         REC_COLUMN_OBJECT, rec,
                         -1); // terminate
+}
+
+// TODO: Check this as it always prints no recipe selected
+/**
+ * @brief Get the currently selected recipe
+ * @return selected Recipe or NULL if there is none
+ */
+URecipe *
+lists_recipe_get_active_recipe()
+{
+    GtkTreeModel *recModel = GTK_TREE_MODEL(recListStore);
+    GtkTreeIter activeIter;
+    gboolean valid;
+
+    valid = gtk_tree_model_get_iter_first(recModel, &activeIter);
+    while(valid)
+    {
+        URecipe *activeRecipe;
+        gtk_tree_model_get(recModel, &activeIter,
+                           REC_COLUMN_OBJECT, &activeRecipe,
+                           -1); // terminate
+        // TODO: Sometimes this is NULL and sometimes it isnt -> WHY?!
+        if(!activeRecipe)
+        {
+            g_print("get_active_recipe -> Active Recipe is NULL\n ");
+        }
+        if(u_recipe_is_selected(activeRecipe))
+        {
+            return activeRecipe;
+        }
+        valid = gtk_tree_model_iter_next(recModel, &activeIter);
+    }
+    g_print("Couldnt find recipe!\n");
+    return NULL;
+}
+URecipe *
+lists_recipe_get_recipe_by_iter(GtkTreeIter iter)
+{
+    GtkTreeModel *recModel = GTK_TREE_MODEL(recListStore);
+    URecipe *temp;
+
+    gtk_tree_model_get(recModel, &iter,
+                       REC_COLUMN_OBJECT, &temp,
+                       -1); // terminate
+
+    return temp;
 }
 
 /* DEBUG FUNCTIONS */

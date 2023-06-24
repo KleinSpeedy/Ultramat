@@ -46,11 +46,18 @@ lists_recipe_store();
 
 void
 lists_ingredient_append(UIngredient *ing);
-UIngredient  *
-lists_get_ingredient_by_id(guint ingID);
+UIngredient *
+lists_ingredient_get_by_id(guint ingID);
+UIngredient *
+lists_ingredient_get_by_position(guint8 position);
+
+GtkTreeIter *
+lists_iter_get_by_position(gint8 position);
 
 void
 lists_recipe_append(URecipe *rec);
+URecipe *
+lists_recipe_get_active_recipe();
 
 #ifdef ULTRA_DEBUG
 void

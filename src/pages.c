@@ -14,7 +14,7 @@ static void populateStackPage_Three(GtkStack *mainStack);
 static void populateStackPage_Four(GtkStack *mainStack);
 
 // HACK: Find better way to pass handler IDs between callback and connection
-extern gulong g_handlerIds[6];
+extern gulong g_handlerIds[PAGES_COMBO_POS_NUM];
 extern gulong g_handlerIdOrderStart;
 extern gulong g_handlerIdComboOrder;
 
@@ -25,6 +25,7 @@ void createStackPages(GtkStack *mainStack)
     populateStackPage_One(mainStack);
     populateStackPage_Two(mainStack);
     populateStackPage_Three(mainStack);
+    populateStackPage_Four(mainStack);
 }
 
 /**
@@ -133,18 +134,19 @@ void populateStackPage_One(GtkStack *mainStack)
     gtk_editable_set_editable(GTK_EDITABLE(entryPos6), FALSE);
 
     // connect callback handler IDs
-    g_handlerIds[0] = g_signal_connect(comboPos1, 
-            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(0));
-    g_handlerIds[1] = g_signal_connect(comboPos2, 
-            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(1));
-    g_handlerIds[2] = g_signal_connect(comboPos3, 
-            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(2));
-    g_handlerIds[3] = g_signal_connect(comboPos4, 
-            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(3));
-    g_handlerIds[4] = g_signal_connect(comboPos5, 
-            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(4));
-    g_handlerIds[5] = g_signal_connect(comboPos6, 
-            "changed", G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(5));
+    // TODO: All positions +1 when pressure pumps are added
+    g_handlerIds[PAGES_COMBO_POS_ONE] = g_signal_connect(comboPos1, "changed",
+                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_ONE));
+    g_handlerIds[PAGES_COMBO_POS_TWO] = g_signal_connect(comboPos2, "changed",
+                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_TWO));
+    g_handlerIds[PAGES_COMBO_POS_THREE] = g_signal_connect(comboPos3,"changed",
+                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_THREE));
+    g_handlerIds[PAGES_COMBO_POS_FOUR] = g_signal_connect(comboPos4, "changed",
+                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_FOUR));
+    g_handlerIds[PAGES_COMBO_POS_FIVE] = g_signal_connect(comboPos5, "changed",
+                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_FIVE));
+    g_handlerIds[PAGES_COMBO_POS_SIX] = g_signal_connect(comboPos6, "changed",
+                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_SIX));
 
     // make combo boxes big enough, makes everything else bigger too
     const int comboWidth = 200, comboHeight = 60;
@@ -155,7 +157,7 @@ void populateStackPage_One(GtkStack *mainStack)
     gtk_widget_set_size_request(GTK_WIDGET(comboPos5), comboWidth, comboHeight);
     gtk_widget_set_size_request(GTK_WIDGET(comboPos6), comboWidth, comboHeight);
 
-    // make name column the one that gets displayed, id column the id column
+    // make name column the one that gets displayed
     gtk_combo_box_set_entry_text_column(comboPos1, ING_COLUMN_NAME);
     gtk_combo_box_set_entry_text_column(comboPos2, ING_COLUMN_NAME);
     gtk_combo_box_set_entry_text_column(comboPos3, ING_COLUMN_NAME);
@@ -314,7 +316,7 @@ void populateStackPage_Three(GtkStack *mainStack)
     GtkToggleButton *manualPos5 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("5"));
     GtkToggleButton *manualPos6 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("6"));
 
-    int buttonWidth = 50, buttonHeight = 50, buttonPadding = 10;
+    gint buttonPadding = 10;
 
     gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos1), TRUE, TRUE, buttonPadding);
     gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos2), TRUE, TRUE, buttonPadding);
@@ -330,5 +332,5 @@ void populateStackPage_Three(GtkStack *mainStack)
 
 void populateStackPage_Four(GtkStack *mainStack)
 {
-
+    (void) mainStack;
 }

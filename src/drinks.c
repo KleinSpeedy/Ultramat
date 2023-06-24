@@ -193,8 +193,9 @@ drinks_recipe_read_ingredients(const char *buffer, URecipe *rec)
         if(idRead && quantityRead)
         {
             // Get ingredient pointer from ingredient ID and append it to GList
-            UIngredient *ing = lists_get_ingredient_by_id(ingID);
-            u_recipe_append_ingredient(rec, ing, ingQuantity);
+            UIngredient *ing = lists_ingredient_get_by_id(ingID);
+            if(!u_recipe_append_ingredient(rec, ing, ingQuantity))
+                g_print("Error appending ingredient to recipe!");
             // Reset status booleans
             idRead = FALSE;
             quantityRead = FALSE;
@@ -220,8 +221,7 @@ drinks_io_read_ingredients()
     {
         // TODO: Make names const gchar *
         gchar *name;
-        guint id, position = 0, bufferIndex = 0;
-        gboolean selected = FALSE;
+        guint id, bufferIndex = 0;
 
         if(!(name = drinks_ingredient_read_name(buffer, &bufferIndex)))
             return DRINKS_ERROR;
@@ -229,7 +229,7 @@ drinks_io_read_ingredients()
         id = drinks_ingredient_read_id(buffer, bufferIndex+1);
 
         // Create new ingredient object
-        UIngredient *newIng = u_ingredient_new(name, id, position, selected);
+        UIngredient *newIng = u_ingredient_new(name, id);
 
         lists_ingredient_append(newIng);
     }
