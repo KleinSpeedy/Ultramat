@@ -11,15 +11,19 @@ struct _UIngredient
 
     gchar *name;        /* Name of ingredient */
     guint id;           /* ingredient identifier */
-    guint8 position;    /* position on axis */
+    gint8 position;     /* position on axis, needs to be signed int so -1 can be initial value */
     gboolean selected;  /* ingredient currently selected or not */
 };
+
+// Ingredient currently holds no position
+#define NO_POSITION -1
 
 G_DEFINE_TYPE (UIngredient, u_ingredient, G_TYPE_OBJECT)
 
 static void
 u_ingredient_class_init(UIngredientClass *class)
 {
+    (void) class;
 }
 
 static void
@@ -28,8 +32,8 @@ u_ingredient_init(UIngredient *self)
     // Default values
     self->name = g_strdup("");
     self->id = 0;
-    self->position = 0;
-    self->selected = FALSE;
+    self->position = -1; // because we have a position zero!
+    self->selected = FALSE; // initially nothing is selected
 }
 
 guint
@@ -48,7 +52,7 @@ u_ingredient_set_id(UIngredient *self, guint id)
     self->id = id;
 }
 
-guint8
+gint8
 u_ingredient_get_position(UIngredient *self)
 {
     if(!self)
@@ -56,18 +60,44 @@ u_ingredient_get_position(UIngredient *self)
     return self->position;
 }
 void
-u_ingredient_set_position(UIngredient *self, guint8 pos)
+u_ingredient_set_position(UIngredient *self, gint8 pos)
 {
     if(!self)
         return;
     self->position = pos;
+}
+/**
+ * @brief Sets position to -1 and selected to FALSE, indicating that
+ * the ingredient has been unselected
+ * @param self Ingredient
+ */
+void
+u_ingredient_is_unselected(UIngredient *self)
+{
+    u_ingredient_set_position(self, NO_POSITION);
+    u_ingredient_set_selected(self, FALSE);
+}
+
+/**
+ * @brief Sets new Ingredient postition and selected to TRUE
+ * @param self instance
+ * @param position new position
+ */
+void
+u_ingredient_is_selected(UIngredient *self, gint8 position)
+{
+    u_ingredient_set_position(self, position);
+    u_ingredient_set_selected(self, TRUE);
 }
 
 gboolean
 u_ingredient_get_selected(UIngredient *self)
 {
     if(!self)
+    {
+        g_log("Ingredients", G_LOG_LEVEL_WARNING, "Object for selected is null!");
         return FALSE;
+    }
     return self->selected;
 }
 void
@@ -96,7 +126,7 @@ u_ingredient_set_name(UIngredient *self, gchar *name)
 }
 
 UIngredient  *
-u_ingredient_new(gchar *name, guint id, guint8 position, gboolean selected)
+u_ingredient_new(gchar *name, guint id)
 {
     UIngredient *ing;
     ing = g_object_new(U_TYPE_INGREDIENT, NULL);
@@ -104,8 +134,7 @@ u_ingredient_new(gchar *name, guint id, guint8 position, gboolean selected)
     ing->name = g_strdup(name);
     g_free(name);
     ing->id = id;
-    ing->position = position;
-    ing->selected = selected;
+
     return ing;
 }
 

@@ -19,10 +19,10 @@ u_ingredient_get_id(UIngredient *self);
 void
 u_ingredient_set_id(UIngredient *self, guint id);
 
-guint8
+gint8
 u_ingredient_get_position(UIngredient *self);
 void
-u_ingredient_set_position(UIngredient *self, guint8 pos);
+u_ingredient_set_position(UIngredient *self, gint8 pos);
 
 gboolean
 u_ingredient_get_selected(UIngredient *self);
@@ -34,8 +34,13 @@ u_ingredient_get_name(UIngredient *self);
 void
 u_ingredient_set_name(UIngredient *self, gchar *name);
 
+void
+u_ingredient_is_unselected(UIngredient *self);
+void
+u_ingredient_is_selected(UIngredient *self, gint8 position);
+
 UIngredient  *
-u_ingredient_new(gchar *name, guint id, guint8 position, gboolean selected);
+u_ingredient_new(gchar *name, guint id);
 
 G_END_DECLS
 
