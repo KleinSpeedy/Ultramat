@@ -7,7 +7,6 @@
 
 #include <glib-object.h>
 #include "ingredient.h"
-#include <glib/glist.h>
 
 G_BEGIN_DECLS
 
@@ -33,6 +32,11 @@ u_recipe_set_available(URecipe *self, gboolean toSet);
 
 guint
 u_recipe_get_ingredient_count(URecipe *self);
+
+void
+u_recipe_set_selected(URecipe *rec, gboolean toSet);
+gboolean
+u_recipe_is_selected(URecipe *self);
 
 URecipe *
 u_recipe_new(gchar *name, guint id, gboolean available);

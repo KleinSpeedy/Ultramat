@@ -5,7 +5,7 @@
 // Module include
 #include "recipe.h"
 #include <stdlib.h>
-#include <glib/glist.h>
+#include <glib.h>
 
 #define ULTRA_LOG "Recipes"
 
@@ -25,6 +25,7 @@ struct _URecipe
     gchar *name;        /* Recipe name */
     guint id;           /* Recipe identifier */
     gboolean available; /* Is recipe currently available or not */
+    gboolean selected;  /* Is recipe currently selected or not, only one at a time! */
 
     guint ingCount;     /* Number of Ingredients */
     GList *ingredients; /* LinkedList with Ingredients information (actual recipe) */
@@ -35,6 +36,7 @@ G_DEFINE_TYPE(URecipe, u_recipe, G_TYPE_OBJECT)
 static void
 u_recipe_class_init(URecipeClass *class)
 {
+    (void) class;
 }
 
 static void
@@ -90,22 +92,55 @@ u_recipe_info_delete(struct RecipeInfo *info)
  * @param data RecipeInfo
  * @param userData available boolean
  */
-static void
-u_recipe_list_check_available(gpointer data, gpointer userData)
+// TODO: Use a mask leftShifted with 1s by ingCount and compare it to actual selected
+static gboolean
+u_recipe_list_check_available(GList *list, guint ingCount)
 {
-    struct RecipeInfo *info = (struct RecipeInfo *)data;
-    gboolean available = GPOINTER_TO_INT(userData);
-
-    if(!info)
+    if(!list)
+        return FALSE;
+    GList *temp = list;
+    struct RecipeInfo *data = (struct RecipeInfo *)list->data;
+    gboolean ret = FALSE;
+    if(!data)
     {
-        g_log(ULTRA_LOG, G_LOG_LEVEL_WARNING,
-              "RecipeInfo in GList is NULL!");
-        available = FALSE;
+        g_print("Availability: NULL\n");
+        return FALSE;
     }
-    if(u_ingredient_get_selected(info->ing))
-        available = TRUE;
+
+    for(; temp->next != NULL; temp = temp->next)
+    {
+        if(u_ingredient_get_selected(data->ing))
+        {
+            ret = TRUE;
+        }
+    }
+
+    return ret;
+}
+
+static void
+u_recipe_list_check_available_fe(gpointer data, gpointer user_data)
+{
+    if(!data)
+    {
+        g_print("RecipeInfo is NULL!\n");
+        return;
+    }
+    gboolean selected = GPOINTER_TO_INT(user_data);
+    struct RecipeInfo *temp = (struct RecipeInfo *)data;
+    g_print("RI: %s %d -> %d\n",
+            u_ingredient_get_name(temp->ing),
+            temp->quantity,
+            u_ingredient_get_selected(temp->ing));
+    if(u_ingredient_get_selected(temp->ing))
+    {
+        selected = TRUE;
+    }
     else
-        available = FALSE;
+    {
+        selected = FALSE;
+    }
+    user_data = GINT_TO_POINTER(selected);
 }
 
 /**
@@ -116,9 +151,7 @@ u_recipe_list_check_available(gpointer data, gpointer userData)
 static gboolean
 u_recipe_check_available(URecipe *rec)
 {
-    gboolean available = FALSE;
-    g_list_foreach(rec->ingredients, u_recipe_list_check_available, &available);
-    return available;
+    return u_recipe_list_check_available(rec->ingredients, rec->ingCount);
 }
 
 /* ========== Public ========== */
@@ -172,6 +205,22 @@ u_recipe_set_available(URecipe *self, gboolean toSet)
     self->available = toSet;
 }
 
+void
+u_recipe_set_selected(URecipe *self, gboolean toSet)
+{
+    if(!self)
+        return;
+    self->selected = toSet;
+}
+
+gboolean
+u_recipe_is_selected(URecipe *self)
+{
+    if(!self)
+        return FALSE;
+    return self->selected;
+}
+
 guint
 u_recipe_get_ingredient_count(URecipe *self)
 {
@@ -187,7 +236,7 @@ u_recipe_append_ingredient(URecipe *rec, UIngredient *ing, guint8 quantity)
     {
         g_log(ULTRA_LOG,
                 G_LOG_LEVEL_WARNING,
-                "Trying to access NULL objects!");
+                "Trying to append NULL objects to recipe list!");
         return FALSE;
     }
     rec->ingredients = g_list_append(rec->ingredients, u_recipe_info_new(ing, quantity));
@@ -205,7 +254,7 @@ u_recipe_new(gchar *name, guint id, gboolean available)
     g_free(name);
     rec->id = id;
     rec->available = available;
-    rec->ingredients = NULL;    // Initialize this later on
+    rec->ingredients = g_list_alloc();
     return rec;
 }
 
@@ -222,6 +271,11 @@ dbg_print_recipe_list(gpointer data, gpointer user_data)
 void
 dbg_print_recipe(URecipe *rec)
 {
+    if(!rec)
+    {
+        g_print("recipe is null!\n");
+        return;
+    }
     g_print("Name: %s, ID: %d, ICount: %d, Available: %d\n",
             rec->name,
             rec->id,
