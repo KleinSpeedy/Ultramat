@@ -117,7 +117,7 @@ drinks_close_recipes_file(FILE *fp)
  * @param bufferIndex offset in buffer
  * @return name of recipe
  */
-static gchar *
+static const gchar *
 drinks_recipe_read_name(const gchar *buffer, guint *bufferIndex)
 {
     for(guint i = 0; buffer[i] != '\n'; ++i)
@@ -173,8 +173,7 @@ drinks_recipe_read_ingredients(const char *buffer, URecipe *rec)
                 digitCount++;
 
             ingID = drinks_str_to_number(buffer, lastHit, lastHit + digitCount);
-            // Update index and reset digit count for next number
-            lastHit += digitCount;
+            // reset digit count for next number
             digitCount = 0;
             idRead = TRUE;
         }
@@ -185,8 +184,7 @@ drinks_recipe_read_ingredients(const char *buffer, URecipe *rec)
                 digitCount++;
 
             ingQuantity = drinks_str_to_number(buffer, lastHit, lastHit + digitCount);
-            // Update index and reset digit count for next number
-            lastHit += digitCount;
+            // reset digit count for next number
             digitCount = 0;
             quantityRead = TRUE;
         }
@@ -252,16 +250,15 @@ drinks_io_read_recipes()
 
     while(fgets(buffer, INPUT_BUFFER_SIZE, input))
     {
-        // TODO: Make names const gchar *
-        gchar *name;
-        guint id, bufferIndex = 0;
+        const gchar *name = NULL;
+        guint id = 0, bufferIndex = 0;
         gboolean available = FALSE;
 
-        if(!(name = drinks_recipe_read_name(buffer, &bufferIndex)))
+        if((name = drinks_recipe_read_name(buffer, &bufferIndex)) == NULL)
             return DRINKS_ERROR;
         id = drinks_recipe_read_id(buffer, bufferIndex+1);
         // Create a new recipe
-        URecipe  *newRec = u_recipe_new(name, id, available);
+        URecipe *newRec = u_recipe_new(name, id, available);
         // start reading list of ingredients for recipe
         drinks_recipe_read_ingredients(&buffer[bufferIndex], newRec);
 

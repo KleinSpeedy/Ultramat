@@ -3,7 +3,6 @@
 #include "drinks.h"
 #include "serialcom.h"
 #include "gui.h"
-#include <stdio.h>
 
 int main(int argc, char **argv)
 {

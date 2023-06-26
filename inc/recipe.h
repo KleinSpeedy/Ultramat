@@ -15,10 +15,10 @@ G_BEGIN_DECLS
 #define U_TYPE_RECIPE (u_recipe_get_type ())
 G_DECLARE_FINAL_TYPE(URecipe, u_recipe, U, RECIPE, GObject)
 
-gchar *
+const gchar *
 u_recipe_get_name(URecipe *self);
 void
-u_recipe_set_name(URecipe *self, gchar *name);
+u_recipe_set_name(URecipe *self, const gchar *name);
 
 guint
 u_recipe_get_id(URecipe *self);
@@ -39,7 +39,7 @@ gboolean
 u_recipe_is_selected(URecipe *self);
 
 URecipe *
-u_recipe_new(gchar *name, guint id, gboolean available);
+u_recipe_new(const gchar *name, guint id, gboolean available);
 
 /* Manage list of Ingredients of each recipe as GLib LinkedList */
 gboolean

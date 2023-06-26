@@ -128,7 +128,7 @@ u_ingredient_set_name(UIngredient *self, gchar *name)
 UIngredient  *
 u_ingredient_new(gchar *name, guint id)
 {
-    UIngredient *ing;
+    UIngredient *ing = NULL;
     ing = g_object_new(U_TYPE_INGREDIENT, NULL);
 
     ing->name = g_strdup(name);
