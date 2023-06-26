@@ -32,7 +32,7 @@ u_ingredient_set_selected(UIngredient *self, gboolean toSet);
 const gchar *
 u_ingredient_get_name(UIngredient *self);
 void
-u_ingredient_set_name(UIngredient *self, gchar *name);
+u_ingredient_set_name(UIngredient *self, const gchar *name);
 
 void
 u_ingredient_is_unselected(UIngredient *self);
@@ -40,7 +40,7 @@ void
 u_ingredient_is_selected(UIngredient *self, gint8 position);
 
 UIngredient  *
-u_ingredient_new(gchar *name, guint id);
+u_ingredient_new(const gchar *name, guint id);
 
 G_END_DECLS
 

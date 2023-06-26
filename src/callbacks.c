@@ -288,7 +288,8 @@ on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
                        REC_COLUMN_OBJECT, &activeRecipe,
                        -1); // terminate
     // TODO: This does not print the full name, but it gets displayed right in the combo box -> WHY?!
-    g_print("%s %d\n", u_recipe_get_name(activeRecipe), u_recipe_get_id(activeRecipe));
+    g_print("Selected Recipe: %s %d\n",
+            u_recipe_get_name(activeRecipe), u_recipe_get_id(activeRecipe));
     u_recipe_set_selected(activeRecipe, TRUE);
 
     if(activeRecipe)

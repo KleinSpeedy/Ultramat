@@ -62,8 +62,8 @@ drinks_close_ingredients_file(FILE *fp)
  * @param bufferIndex offset in buffer
  * @return name of ingredient
  */
-static gchar *
-drinks_ingredient_read_name(gchar *buffer, guint *bufferIndex)
+static const gchar *
+drinks_ingredient_read_name(const gchar *buffer, guint *bufferIndex)
 {
     for(guint i = 0; buffer[i] != '\n'; ++i)
     {
@@ -217,11 +217,10 @@ drinks_io_read_ingredients()
 
     while(fgets(buffer, INPUT_BUFFER_SIZE, input))
     {
-        // TODO: Make names const gchar *
-        gchar *name;
+        const gchar *name = NULL;
         guint id, bufferIndex = 0;
 
-        if(!(name = drinks_ingredient_read_name(buffer, &bufferIndex)))
+        if((name = drinks_ingredient_read_name(buffer, &bufferIndex)) == NULL)
             return DRINKS_ERROR;
         // +1 skips semicolon | TODO: Error handling reading id
         id = drinks_ingredient_read_id(buffer, bufferIndex+1);

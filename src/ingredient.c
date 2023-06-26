@@ -9,7 +9,7 @@ struct _UIngredient
 {
     GObject parent_instance;
 
-    gchar *name;        /* Name of ingredient */
+    const gchar *name;        /* Name of ingredient */
     guint id;           /* ingredient identifier */
     gint8 position;     /* position on axis, needs to be signed int so -1 can be initial value */
     gboolean selected;  /* ingredient currently selected or not */
@@ -32,7 +32,7 @@ u_ingredient_init(UIngredient *self)
     // Default values
     self->name = g_strdup("");
     self->id = 0;
-    self->position = -1; // because we have a position zero!
+    self->position = NO_POSITION; // because we have a position zero set it to -1
     self->selected = FALSE; // initially nothing is selected
 }
 
@@ -79,7 +79,7 @@ u_ingredient_is_unselected(UIngredient *self)
 }
 
 /**
- * @brief Sets new Ingredient postition and selected to TRUE
+ * @brief Sets new Ingredient position and selected to TRUE
  * @param self instance
  * @param position new position
  */
@@ -108,31 +108,31 @@ u_ingredient_set_selected(UIngredient *self, gboolean toSet)
     self->selected = toSet;
 }
 
-const
-gchar *u_ingredient_get_name(UIngredient *self)
+const gchar *
+u_ingredient_get_name(UIngredient *self)
 {
     if(!self)
         return "";
     return self->name;
 }
 void
-u_ingredient_set_name(UIngredient *self, gchar *name)
+u_ingredient_set_name(UIngredient *self, const gchar *name)
 {
     if(g_strcmp0(name, self->name) == 0)
     {
-        g_free(self->name);
+        g_free((gchar *)self->name);
         self->name = g_strdup(name);
     }
 }
 
 UIngredient  *
-u_ingredient_new(gchar *name, guint id)
+u_ingredient_new(const gchar *name, guint id)
 {
     UIngredient *ing = NULL;
     ing = g_object_new(U_TYPE_INGREDIENT, NULL);
 
     ing->name = g_strdup(name);
-    g_free(name);
+    g_free((gchar *)name);
     ing->id = id;
 
     return ing;
