@@ -9,6 +9,16 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_SYSTEM_NAME Linux)
 
+    # Specify source and include directory
+    set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+    set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/inc")
+
+    # Collect all .c files in the source directory
+    file(GLOB SOURCE_FILES "${SOURCE_DIR}/*.c")
+
+    # Collect all header files in the include directory
+    file(GLOB HEADER_FILES "${HEADER_DIR}/*.h")
+
     # Compiler options release
     set(ULTRAMAT_OPTIONS
             "-O3"
@@ -39,9 +49,6 @@ link_directories(${GTK3_LIBRARY_DIRS})
 # dont build tests
 set(BUILD_TESTS OFF CACHE BOOL "Build tests")
 add_subdirectory(ext/c-periphery)
-
-# Include Files
-include_directories(inc)
 
 # Source files
 add_subdirectory(src)
