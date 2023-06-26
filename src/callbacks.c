@@ -214,7 +214,7 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
             return;
         }
         // unset former Ingredient holding position and set new ingredient
-        u_ingredient_is_unselected(formerIng);
+        u_ingredient_set_unselected(formerIng);
         u_ingredient_is_selected(activeIng, comboPosition);
 
         g_object_unref(formerIng);
@@ -313,22 +313,22 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     */
     URecipe *activeRecipe = lists_recipe_get_active_recipe();
 
-    if(!activeRecipe)
+    if(activeRecipe == NULL)
     {
         cb_reset_toggle_status(orderButton);
         show_error_msg("Error fetching recipe information!");
         g_object_unref(activeRecipe);
         return;
     }
-    // TODO: This functions only works some of the times
+
     gboolean available = u_recipe_is_available(activeRecipe);
     if(!available)
     {
         cb_reset_toggle_status(orderButton);
         show_error_msg("Recipe is not available!");
     }
-    else {
-        // TODO: Start order
+    else
+    {
         g_print("Starting movement...");
     }
 

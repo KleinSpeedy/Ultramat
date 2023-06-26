@@ -72,7 +72,7 @@ u_ingredient_set_position(UIngredient *self, gint8 pos)
  * @param self Ingredient
  */
 void
-u_ingredient_is_unselected(UIngredient *self)
+u_ingredient_set_unselected(UIngredient *self)
 {
     u_ingredient_set_position(self, NO_POSITION);
     u_ingredient_set_selected(self, FALSE);

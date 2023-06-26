@@ -35,7 +35,7 @@ void
 u_ingredient_set_name(UIngredient *self, const gchar *name);
 
 void
-u_ingredient_is_unselected(UIngredient *self);
+u_ingredient_set_unselected(UIngredient *self);
 void
 u_ingredient_is_selected(UIngredient *self, gint8 position);
 
