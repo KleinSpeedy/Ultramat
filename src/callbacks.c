@@ -1,33 +1,24 @@
 /*
- * Implements GTK Widget callbacks and neccessary "helper" functions.
+ * Implements GTK Widget callbacks and necessary "helper" functions.
  */
 
 #include "callbacks.h"
-#include "drinkarray.h"
 #include "drinklists.h"
-#include "drinks.h"
 #include "serialcom.h"
+#include "pages.h"
 #include <glib.h>
-#include <stdio.h>
 #include <string.h>
+
+// Replace current text with default text
+// TODO: Use this in pages.c too!
+#define RESET_TEXT "Zutat auswählen!"
 
 // get access to main Window
 extern GtkWindow *g_mainWindow;
-// get access to drink data
-extern struct DrinkManagement *g_DrinkData;
-
-#define REPLACE GTK_RESPONSE_ACCEPT
-#define DISCARD GTK_RESPONSE_REJECT
-
-// Replace current text with default text
-#define RESET_TEXT "Zutat auswählen!"
-
-// error str buffer size
-#define ERR_STR_BUFFER 100
 
 // HACK?: make Handler IDs global
 // 6 IDs for 6 callbacks
-gulong g_handlerIds[6];
+gulong g_handlerIds[PAGES_COMBO_POS_NUM];
 
 // handler id for orderStart toggle button
 gulong g_handlerIdOrderStart;
@@ -38,38 +29,23 @@ gulong g_handlerIdMotorSwitch;
 // handler id for recipe order combo box
 gulong g_handlerIdComboOrder;
 
-// keep track of last items selected
-static GtkTreeIter *positionIters[6];
-// keep track of selected recipe
-static GtkTreeIter recipeIter;
-
+// keep track whether motors were enabled or not
 static gboolean MOTORS_ENABLED = FALSE;
 
-/* PRIVATE FUNCTION DECLARATION */
+/* ========== STATIC FUNCTION DECLARATION ========== */
 
 static void show_error_msg(gchar *errorStr);
-
-static void cb_decision_replace();
-
-static void cb_decision_discard(GtkComboBox *comboBox, gulong handlerId);
-
-static void apply_modal_decision(
-        gint decision,
-        GtkComboBox *comboBox,
-        gulong handlerId,
-        guint position);
-
-static gint on_already_selected(gchar *name, guint position);
-
 static void cb_reset_toggle_status(GtkToggleButton *toggleButton);
+static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId, GtkTreeIter *toSetIter);
+static void cb_set_switch_state(GtkSwitch *sw, gboolean newState);
 
-static gboolean cb_check_recipe(struct DrinkManagement *dm);
+/* ========== STATIC FUNCTION IMPLEMENTATION ========== */
 
-static gboolean cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id);
-
-/* IMPLEMENTATION */
-
-// Show error msg if something goes wrong
+/**
+ * @brief shows a simple modal dialog presenting an error string
+ * @todo implement this as helper function in gui.c -> no need for g_mainWindow
+ * @param errorStr error string
+ */
 static void
 show_error_msg(gchar *errorStr)
 {
@@ -87,61 +63,38 @@ show_error_msg(gchar *errorStr)
     gtk_widget_destroy(dialog);
 }
 
-// 
+/**
+ * @brief Reset the combo box to a former ingredient or to nothing
+ * without emitting the changed signal
+ * @param comboBox
+ * @param handlerId combo handler ID
+ * @param toSetIter row in ListStore or NULL if no ingredient on combo position
+ */
 static void
-cb_decision_replace()
-{
-
-}
-
-// unset item of current combo box and reset text in GtkEntry
-static void
-cb_decision_discard(GtkComboBox *comboBox, gulong handlerId)
+cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId, GtkTreeIter *toSetIter)
 {
     // block signal emit because we are setting active entry
     g_signal_handler_block(comboBox, handlerId);
-
-    // Reset current entry text
-    gtk_combo_box_set_active_iter(comboBox, NULL);
-    GtkEntry *comboEntry = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboBox)));
-    gtk_entry_set_text(comboEntry, RESET_TEXT);
-
+    // Reset completely or change back to former selected ingredient
+    if(!toSetIter)
+    {
+        gtk_combo_box_set_active_iter(comboBox, NULL);
+        gtk_entry_set_text(GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboBox))),
+                           RESET_TEXT);
+    }
+    else
+    {
+        gtk_combo_box_set_active_iter(comboBox, toSetIter);
+    }
+    // don't forget to unblock signal again
     g_signal_handler_unblock(comboBox, handlerId);
 }
 
-// apply replace or discard decision from modal dialog
-static void
-apply_modal_decision(gint decision,
-        GtkComboBox *comboBox,
-        gulong handlerId,
-        guint position)
-{
-    switch(decision)
-    {
-        // TODO: Delete entry on previous comboBox
-        case REPLACE:
-        {
-            g_print("Replace\n");
-            break;
-        }
-        // Delete item in current comboBox
-        case DISCARD:
-        {
-            g_print("Discard\n");
-            cb_decision_discard(comboBox, handlerId);
-            break;
-        }
-        default:
-        {
-            show_error_msg("Unknown decision value!");
-            break;
-        }
-    }
-}
-
-// popup dialog window if row is already selected
+/* TODO: Implement this when properly implementing the position property
+ *
+static gint on_already_selected(const gchar *name, guint position);
 static gint
-on_already_selected(gchar *name, guint position)
+on_already_selected(const gchar *name, guint position)
 {
     GtkWidget *label, *content_area, *dialog;
     GtkWidget *buttonReplace, *buttonDiscard;
@@ -172,6 +125,7 @@ on_already_selected(gchar *name, guint position)
     // return modal dialog decision
     return gtk_dialog_run(GTK_DIALOG(dialog));
 }
+*/
 
 // Change order toggle button status back to inactive
 // without emitting signal
@@ -194,146 +148,85 @@ cb_set_switch_state(GtkSwitch *sw, gboolean newState)
     g_signal_handler_unblock(sw, g_handlerIdMotorSwitch);
 }
 
-// check if all needed ingredients are currently selected
-static gboolean
-cb_check_recipe(struct DrinkManagement *dm)
-{
-    gboolean available = FALSE;
-    GtkListStore *recStore = g_DrinkData->recipeListStore;
+/* ========== CALLBACK IMPLEMENTATIONS ========== */
 
-    guint id;
-    gchar *name;
-
-    // TODO: function is slow, find different solution!
-    if(!(gtk_list_store_iter_is_valid(recStore, &recipeIter)))
-    {
-        show_error_msg("Recipe entry is invalid!");
-        return FALSE;
-    }
-
-    gtk_tree_model_get(GTK_TREE_MODEL(recStore), &recipeIter,
-            REC_COLUMN_ID, &id,
-            REC_COLUMN_NAME, &name,
-            -1); // terminate
-
-    // check if recipe is available
-    available = cb_check_ingredient_list(g_DrinkData->recipeArray, g_DrinkData->ingredientArray, id);
-
-    g_free(name);
-    return available;
-}
-
-// Iterate over ingredients list
-static gboolean
-cb_check_ingredient_list(Rec_Array_t *recArray, Ing_Array_t *ingArray, guint id)
-{
-    Recipe_t recipe = recipe_get_at(recArray, id);
-
-    g_print("Recipe: %s ID: %d count: %d\n", recipe.name, recipe.id, recipe.ingredientCount);
-
-    for(uint8_t i = 0; i < recipe.ingredientCount; ++i)
-    {
-        Ingredient_t ingredient = ingredients_get_at(ingArray, recipe.recipeTuples[i].id);
-        g_print("Ing: %s, available: %d\n", ingredient.name, ingredient.selected);
-    }
-
-    return TRUE;
-}
-
-/* CALLBACK IMPLEMENTATIONS */
-
-// gets called when selecting a new ingredient and needs to handle reselection
-// on a different position as well as discarding current selection
+/**
+ * @brief Callback for selecting a new Ingredient on a ComboBox
+ * This callback needs to handle a possible reselection too
+ *
+ * @param comboBox callback ComboBox
+ * @param data position of combobox as pointer data
+ */
 void
 on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
     GtkTreeModel *comboModel;
-    GtkTreeIter activeIter;
+    GtkTreeIter  activeIter, *formerIter;
+    UIngredient *activeIng, *formerIng;
 
-    // ingredient members
-    gboolean selected;
-    gchararray name;
-
-    // row in liststore and combo position
-    guint rowPosition, cbPosition;
-    gulong currentHandlerId = 0;
-
-    cbPosition = GPOINTER_TO_INT(data);
-
-    // get current callback handler ID
-    if(cbPosition < 6)
-    {
-        currentHandlerId = g_handlerIds[cbPosition];
-    }
-    else
-    {
-        show_error_msg("Error calculating callback position!");
-        return;
-    }
-
+    // Get combo position num from callback data
+    gint8 comboPosition = GPOINTER_TO_INT(data);
+    // Get list store data
     comboModel = gtk_combo_box_get_model(comboBox);
-
-    // check if position was already used and if so clear it
-    if(positionIters[cbPosition])
-    {
-        gtk_list_store_set(GTK_LIST_STORE(comboModel), positionIters[cbPosition],
-                ING_COLUMN_SELECTED, FALSE,
-                -1); // end
-        gtk_tree_iter_free(positionIters[cbPosition]);
-    }
-
-    if(!gtk_combo_box_get_active_iter(comboBox, &activeIter))
-    {
-        show_error_msg("Couldnt fetch ingredients data!");
-        return;
-    }
-
-    // fetch row data
+    gtk_combo_box_get_active_iter(comboBox, &activeIter);
     gtk_tree_model_get(comboModel, &activeIter,
-            ING_COLUMN_NAME, &name,
-            ING_COLUMN_SELECTED, &selected,
-            ING_COLUMN_POSITION, &rowPosition,
-            -1); // end
+                       ING_COLUMN_OBJECT, &activeIng,
+                       -1); // terminate
 
-    // item was already selected once
-    // TODO: Check necessary?
-    if(selected)
+    // Save former Ingredient of position if there is one
+    formerIng = lists_ingredient_get_by_position(comboPosition);
+
+    // Check if active ingredient already holds a position
+    if(u_ingredient_get_selected(activeIng))
     {
-        // ingredient selected elsewhere
-        if(cbPosition != rowPosition)
+        show_error_msg("Ingredient is already selected elsewhere!");
+        if(!formerIng)
         {
-            // TODO: make this one function
-            gint decision = on_already_selected(name, (gint)rowPosition + 1);
-            apply_modal_decision(decision,
-                    comboBox,currentHandlerId, cbPosition);
-            return;
+            // position held no ingredient before
+            cb_reset_combo_box(comboBox, g_handlerIds[comboPosition], NULL);
         }
         else
         {
-            // This shouldn't happen as "reselecting" shouldn't be possible
-            show_error_msg("Reselect Error!");
+            // Reset position to old ingredient
+            formerIter = lists_iter_get_by_position(u_ingredient_get_position(formerIng));
+            cb_reset_combo_box(comboBox, g_handlerIds[comboPosition], formerIter);
+            gtk_tree_iter_free(formerIter);
+        }
+
+        g_object_unref(formerIng);
+        g_object_unref(activeIng);
+        return;
+    }
+    // No Ingredient holds current position
+    if(!formerIng)
+    {
+        u_ingredient_is_selected(activeIng, comboPosition);
+        g_object_unref(activeIng);
+        return;
+    }
+    else
+    {
+        // If it's the same ingredient do nothing, as it should not be possible
+        if(u_ingredient_get_id(activeIng) == u_ingredient_get_id(formerIng))
+        {
+            g_object_unref(formerIng);
+            g_object_unref(activeIng);
             return;
         }
+        // unset former Ingredient holding position and set new ingredient
+        u_ingredient_set_unselected(formerIng);
+        u_ingredient_is_selected(activeIng, comboPosition);
+
+        g_object_unref(formerIng);
+        g_object_unref(activeIng);
+        return;
     }
-
-    //  Set position and selected
-    gtk_list_store_set(GTK_LIST_STORE(comboModel), &activeIter,
-            ING_COLUMN_POSITION, cbPosition,
-            ING_COLUMN_SELECTED, TRUE,
-            -1);
-
-    g_print("%s %d %d\n", name, selected, rowPosition);
-    positionIters[cbPosition] = gtk_tree_iter_copy(&activeIter);
-
-    // Free necessary?
-    g_free(name);
 }
 
 gboolean
 on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
 {
-    int ret;
-
+    (void) data;
     // get out if everything is TRUE
     if(MOTORS_ENABLED && state)
         return TRUE;
@@ -341,7 +234,7 @@ on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
     // new activation
     if(!MOTORS_ENABLED)
     {
-        if((ret = serialcom_initialize_connection()) != 0)
+        if(serialcom_initialize_connection() != 0)
         {
             cb_set_switch_state(motorSwitch, FALSE);
             show_error_msg("Unable to open serial connection\n"
@@ -355,10 +248,11 @@ on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
     // new stop signal
     else
     {
-        if((ret = serialcom_cancel_connection()) != 0)
+        if(serialcom_cancel_connection() != 0)
         {
             cb_set_switch_state(motorSwitch, FALSE);
             show_error_msg("Unable to close serial connection!");
+            return FALSE;
         }
         else
         {
@@ -373,8 +267,33 @@ on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
 void
 on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
 {
-    // get model and active item
-    gtk_combo_box_get_active_iter(comboBox, &recipeIter);
+    (void)data;
+
+    URecipe *activeRecipe = NULL, *formerRecipe = NULL;
+    GtkTreeIter activeIter;
+    GtkTreeModel *comboModel = gtk_combo_box_get_model(comboBox);
+    gtk_combo_box_get_active_iter(comboBox, &activeIter);
+
+    if((formerRecipe = lists_recipe_get_active_recipe()) != NULL)
+    {
+        u_recipe_set_selected(formerRecipe, FALSE);
+        g_object_unref(formerRecipe);
+    }
+    else
+    {
+        g_print("Callback: No formerly active recipe!\n");
+    }
+
+    gtk_tree_model_get(comboModel, &activeIter,
+                       REC_COLUMN_OBJECT, &activeRecipe,
+                       -1); // terminate
+    // TODO: This does not print the full name, but it gets displayed right in the combo box -> WHY?!
+    g_print("Selected Recipe: %s %d\n",
+            u_recipe_get_name(activeRecipe), u_recipe_get_id(activeRecipe));
+    u_recipe_set_selected(activeRecipe, TRUE);
+
+    if(activeRecipe)
+        g_object_unref(activeRecipe);
 }
 
 // gets called when starting a new mix and checks if all ingredients 
@@ -382,27 +301,36 @@ on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
 void
 on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
 {
-    GtkTreeIter activeIter;
-    GtkTreeModel *tempModel;
-
+    (void) data;
+    /*
     if(!MOTORS_ENABLED)
     {
         // bail out if motor switch is not activated
-        show_error_msg("Motors arent activated, start Serial first!");
+        show_error_msg("Motors are not activated, start Serial first!");
         cb_reset_toggle_status(orderButton);
         return;
     }
+    */
+    URecipe *activeRecipe = lists_recipe_get_active_recipe();
 
-    if(data)
+    if(activeRecipe == NULL)
     {
-        struct DrinkManagement *dm = data;
+        cb_reset_toggle_status(orderButton);
+        show_error_msg("Error fetching recipe information!");
+        g_object_unref(activeRecipe);
+        return;
+    }
 
-        gboolean available = cb_check_recipe(dm);
-        if(!available)
-            cb_reset_toggle_status(orderButton);
+    gboolean available = u_recipe_is_available(activeRecipe);
+    if(!available)
+    {
+        cb_reset_toggle_status(orderButton);
+        show_error_msg("Recipe is not available!");
     }
     else
     {
-        show_error_msg("Error fetching callback data!");
+        g_print("Starting movement...");
     }
+
+    g_object_unref(activeRecipe);
 }

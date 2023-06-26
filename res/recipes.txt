@@ -1,3 +1,3 @@
-Vodka-O;0;0-4;5-2;
-Vodka-A;1;1-4;5-2;
-Gin-Tonic;2;6-4;4-2;
+Vodka-O;1;1-4;6-2;
+Vodka-A;2;2-4;6-2;
+Gin-Tonic;3;7-4;5-2;
