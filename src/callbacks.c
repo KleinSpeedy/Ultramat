@@ -269,19 +269,19 @@ on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
 {
     (void)data;
 
-    URecipe *activeRecipe, *formerRecipe;
+    URecipe *activeRecipe = NULL, *formerRecipe = NULL;
     GtkTreeIter activeIter;
     GtkTreeModel *comboModel = gtk_combo_box_get_model(comboBox);
     gtk_combo_box_get_active_iter(comboBox, &activeIter);
 
-    // TODO: Check get active recipe
-    if((formerRecipe = lists_recipe_get_active_recipe()))
+    if((formerRecipe = lists_recipe_get_active_recipe()) != NULL)
     {
         u_recipe_set_selected(formerRecipe, FALSE);
+        g_object_unref(formerRecipe);
     }
     else
     {
-        g_print("Didnt find a formerly active recipe!\n");
+        g_print("Callback: No formerly active recipe!\n");
     }
 
     gtk_tree_model_get(comboModel, &activeIter,
@@ -293,8 +293,6 @@ on_combo_order_changed(GtkComboBox *comboBox, gpointer data)
 
     if(activeRecipe)
         g_object_unref(activeRecipe);
-    if(formerRecipe)
-        g_object_unref(formerRecipe);
 }
 
 // gets called when starting a new mix and checks if all ingredients 

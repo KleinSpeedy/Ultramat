@@ -16,7 +16,6 @@ static GtkListStore *recListStore;
 
 /* function implementation */
 
-
 GtkListStore *
 lists_ingredient_store()
 {
@@ -197,10 +196,9 @@ lists_recipe_get_active_recipe()
         gtk_tree_model_get(recModel, &activeIter,
                            REC_COLUMN_OBJECT, &activeRecipe,
                            -1); // terminate
-        // TODO: Sometimes this is NULL and sometimes it isnt -> WHY?!
         if(!activeRecipe)
         {
-            g_print("get_active_recipe -> Active Recipe is NULL\n ");
+            g_print("List: Active Recipe is NULL\n ");
         }
         if(u_recipe_is_selected(activeRecipe))
         {
@@ -208,9 +206,10 @@ lists_recipe_get_active_recipe()
         }
         valid = gtk_tree_model_iter_next(recModel, &activeIter);
     }
-    g_print("Couldnt find recipe!\n");
+    g_print("List: Currently no recipe active!\n");
     return NULL;
 }
+
 URecipe *
 lists_recipe_get_recipe_by_iter(GtkTreeIter iter)
 {
@@ -229,9 +228,7 @@ lists_recipe_get_recipe_by_iter(GtkTreeIter iter)
 void
 dbg_print_ingredients()
 {
-    g_log(ULTRA_LOG,
-          G_LOG_LEVEL_INFO,
-          "Start dbg print of ingredients:");
+    g_print("Start dbg print of ingredients:\n");
     GtkTreeModel *model = GTK_TREE_MODEL(ingListStore);
     GtkTreeIter iter;
     gboolean valid;
@@ -239,7 +236,7 @@ dbg_print_ingredients()
     valid = gtk_tree_model_get_iter_first (model, &iter);
     while(valid)
     {
-        UIngredient *ing;
+        UIngredient *ing = NULL;
         gtk_tree_model_get(model, &iter,
                             ING_COLUMN_OBJECT, &ing,
                            -1); // Terminate
@@ -257,9 +254,7 @@ dbg_print_ingredients()
 void
 dbg_print_recipes()
 {
-    g_log(ULTRA_LOG,
-          G_LOG_LEVEL_INFO,
-          "Start dbg print of recipes:");
+    g_print("Start dbg print of recipes:\n");
     GtkTreeModel *model = GTK_TREE_MODEL(recListStore);
     GtkTreeIter iter;
     gboolean valid;
@@ -267,7 +262,7 @@ dbg_print_recipes()
     valid = gtk_tree_model_get_iter_first (model, &iter);
     while(valid)
     {
-        URecipe *rec;
+        URecipe *rec = NULL;
         gtk_tree_model_get(model, &iter,
                            ING_COLUMN_OBJECT, &rec,
                            -1); // Terminate
