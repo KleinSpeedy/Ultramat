@@ -55,3 +55,4 @@ Runs Executable.
 - Remove global variables in `gui.c`
 - Check for duplicate IDs while parsing recipes and ingredients
 - Implement cool images on page 1
+- Use G_LOG_LEVEL_DEBUG for debug printing and add CMake debug target

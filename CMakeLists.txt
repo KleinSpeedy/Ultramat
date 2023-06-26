@@ -9,7 +9,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_SYSTEM_NAME Linux)
 
-    # Compiler options
+    # Compiler options release
     set(ULTRAMAT_OPTIONS
             "-O3"
             "-Wall"
