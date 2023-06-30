@@ -2,10 +2,13 @@
  * Implements GTK Widget callbacks and necessary "helper" functions.
  */
 
+/* Project includes */
 #include "callbacks.h"
 #include "drinklists.h"
 #include "serialcom.h"
 #include "pages.h"
+
+/* System includes */
 #include <glib.h>
 #include <string.h>
 
@@ -35,7 +38,7 @@ static gboolean MOTORS_ENABLED = FALSE;
 /* ========== STATIC FUNCTION DECLARATION ========== */
 
 static void show_error_msg(gchar *errorStr);
-static void cb_reset_toggle_status(GtkToggleButton *toggleButton);
+static void cb_reset_toggle_status(GtkToggleButton *toggleButton, gulong handlerId);
 static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId, GtkTreeIter *toSetIter);
 static void cb_set_switch_state(GtkSwitch *sw, gboolean newState);
 
@@ -91,50 +94,19 @@ cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId, GtkTreeIter *toSetIt
 }
 
 /* TODO: Implement this when properly implementing the position property
+ * see git commit log for implementation
  *
 static gint on_already_selected(const gchar *name, guint position);
-static gint
-on_already_selected(const gchar *name, guint position)
-{
-    GtkWidget *label, *content_area, *dialog;
-    GtkWidget *buttonReplace, *buttonDiscard;
-
-    dialog = gtk_dialog_new();
-    gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
-    gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), TRUE);
-
-    buttonReplace = gtk_dialog_add_button(GTK_DIALOG(dialog), "Ersetzen", REPLACE);
-    buttonDiscard = gtk_dialog_add_button(GTK_DIALOG(dialog), "Verwerfen", DISCARD);
-
-    // Callbacks
-    g_signal_connect(buttonReplace, "clicked", G_CALLBACK(gtk_window_close), dialog);
-    g_signal_connect(buttonDiscard, "clicked", G_CALLBACK(gtk_window_close), dialog);
-
-    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-
-    char buffer[ERR_STR_BUFFER];
-
-    memset(buffer, 0, ERR_STR_BUFFER);
-    snprintf(buffer, ERR_STR_BUFFER, "%s is already selected at %d", name, position);
-
-    label = gtk_label_new(buffer);
-
-    // Add the label, and show everything we’ve added
-    gtk_container_add(GTK_CONTAINER(content_area), label);
-    gtk_widget_show_all(dialog);
-    // return modal dialog decision
-    return gtk_dialog_run(GTK_DIALOG(dialog));
-}
 */
 
 // Change order toggle button status back to inactive
 // without emitting signal
 static void
-cb_reset_toggle_status(GtkToggleButton *toggleButton)
+cb_reset_toggle_status(GtkToggleButton *toggleButton, gulong handlerId)
 {
-    g_signal_handler_block(toggleButton, g_handlerIdOrderStart);
+    g_signal_handler_block(toggleButton, handlerId);
     gtk_toggle_button_set_active(toggleButton, FALSE);
-    g_signal_handler_unblock(toggleButton, g_handlerIdOrderStart);
+    g_signal_handler_unblock(toggleButton, handlerId);
 }
 
 // Set status without emitting signal
@@ -180,7 +152,7 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
     if(u_ingredient_get_selected(activeIng))
     {
         show_error_msg("Ingredient is already selected elsewhere!");
-        if(!formerIng)
+        if(formerIng == NULL)
         {
             // position held no ingredient before
             cb_reset_combo_box(comboBox, g_handlerIds[comboPosition], NULL);
@@ -198,7 +170,7 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
         return;
     }
     // No Ingredient holds current position
-    if(!formerIng)
+    if(formerIng == NULL)
     {
         u_ingredient_is_selected(activeIng, comboPosition);
         g_object_unref(activeIng);
@@ -213,8 +185,9 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
             g_object_unref(activeIng);
             return;
         }
-        // unset former Ingredient holding position and set new ingredient
+        // unset former Ingredient holding position
         u_ingredient_set_unselected(formerIng);
+        // set new ingredient as selected
         u_ingredient_is_selected(activeIng, comboPosition);
 
         g_object_unref(formerIng);
@@ -307,7 +280,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     {
         // bail out if motor switch is not activated
         show_error_msg("Motors are not activated, start Serial first!");
-        cb_reset_toggle_status(orderButton);
+        cb_reset_toggle_status(orderButton, g_handlerIdComboOrder);
         return;
     }
     */
@@ -315,7 +288,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
 
     if(activeRecipe == NULL)
     {
-        cb_reset_toggle_status(orderButton);
+        cb_reset_toggle_status(orderButton, g_handlerIdComboOrder);
         show_error_msg("Error fetching recipe information!");
         g_object_unref(activeRecipe);
         return;
@@ -324,7 +297,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     gboolean available = u_recipe_is_available(activeRecipe);
     if(!available)
     {
-        cb_reset_toggle_status(orderButton);
+        cb_reset_toggle_status(orderButton, g_handlerIdComboOrder);
         show_error_msg("Recipe is not available!");
     }
     else
