@@ -13,7 +13,7 @@ typedef enum lockstatus_
 {
     LOCK_SUCCESS = 0,
     LOCK_USED
-} LocKStatus_t;
+} LockStatus_t;
 
 /* ========== STATIC FUNCTIONS ========== */
 
@@ -29,7 +29,7 @@ buffer_unlock(Buffer_t *buf)
     pthread_mutex_unlock(&buf->lock);
 }
 
-static inline LocKStatus_t
+static inline LockStatus_t
 buffer_try_lock(Buffer_t *buf)
 {
     if(pthread_mutex_trylock(&buf->lock))
