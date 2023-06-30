@@ -10,9 +10,9 @@
 #define ULTRA_LOG "Drinklist"
 
 // local ingredient list store holds all ingredient objects
-static GtkListStore *ingListStore;
+static GtkListStore *ingListStore = NULL;
 // local recipe list store holds all recipe objects
-static GtkListStore *recListStore;
+static GtkListStore *recListStore = NULL;
 
 /* function implementation */
 
