@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdint.h>
 
-typedef struct buffer
+typedef struct buffer_
 {
     pthread_mutex_t lock;   /* make buffer "thread safe" */
 
@@ -20,12 +20,12 @@ typedef struct buffer
     int size;               /* actual buffer size */
 } Buffer_t;
 
-typedef enum buf_status
+typedef enum buf_status_
 {
     BUFFER_ERROR = -1,
     BUFFER_WRITE_OK,    /* Successfully written elements */
     BUFFER_READ_OK,     /* Successfully read elements */
-    BUFFER_FULL,        /* Read == Write position */
+    BUFFER_EMPTY,       /* Read == Write position */
     BUFFER_USED         /* Buffer is currently used */
 } Buf_Status_t;
 

@@ -5,14 +5,11 @@
 /* Module include */
 #include "buffer.h"
 
-/* Project includes */
-#include "checks.h"
-
 /* System includes */
 #include <stdlib.h>
 
 /* Thread locking status */
-typedef enum _lockstatus
+typedef enum lockstatus_
 {
     LOCK_SUCCESS = 0,
     LOCK_USED
@@ -20,24 +17,30 @@ typedef enum _lockstatus
 
 /* ========== STATIC FUNCTIONS ========== */
 
-static void
+static inline void
 buffer_lock(Buffer_t *buf)
 {
     pthread_mutex_lock(&buf->lock);
 }
 
-static void
+static inline void
 buffer_unlock(Buffer_t *buf)
 {
     pthread_mutex_unlock(&buf->lock);
 }
 
-static LocKStatus_t
+static inline LocKStatus_t
 buffer_try_lock(Buffer_t *buf)
 {
     if(pthread_mutex_trylock(&buf->lock))
         return LOCK_USED;
     return LOCK_SUCCESS;
+}
+
+static inline int
+buffer_empty(Buffer_t *buf)
+{
+    return (buf->write == buf->read);
 }
 
 /**
@@ -91,9 +94,8 @@ void buffer_destroy(Buffer_t *buf)
 Buf_Status_t buffer_write_try(Buffer_t *buf, const uint8_t *data, int count)
 {
     if(buf == NULL || data == NULL)
-    {
         return BUFFER_ERROR;
-    }
+
     /* Return if buffer is currently used */
     if(buffer_try_lock(buf) == LOCK_USED)
     {
@@ -119,9 +121,8 @@ Buf_Status_t buffer_write_try(Buffer_t *buf, const uint8_t *data, int count)
 Buf_Status_t buffer_write_wait(Buffer_t *buf, const uint8_t *data, int count)
 {
     if(buf == NULL || data == NULL)
-    {
         return BUFFER_ERROR;
-    }
+
     /* Wait until lock is obtained */
     buffer_lock(buf);
     /* Copy data from temp buffer to actual buffer */
@@ -144,9 +145,11 @@ Buf_Status_t buffer_write_wait(Buffer_t *buf, const uint8_t *data, int count)
 Buf_Status_t buffer_read_try(Buffer_t *buf, uint8_t *readBuf, int count)
 {
     if(buf == NULL || readBuf == NULL)
-    {
         return BUFFER_ERROR;
-    }
+
+    if(buffer_empty(buf))
+        return BUFFER_EMPTY;
+
     /* Return if buffer is currently used */
     if(buffer_try_lock(buf) == LOCK_USED)
     {
@@ -172,9 +175,11 @@ Buf_Status_t buffer_read_try(Buffer_t *buf, uint8_t *readBuf, int count)
 Buf_Status_t buffer_read_wait(Buffer_t *buf, uint8_t *readBuf, int count)
 {
     if(buf == NULL || readBuf == NULL)
-    {
         return BUFFER_ERROR;
-    }
+
+    if(buffer_empty(buf))
+        return BUFFER_EMPTY;
+
     /* Wait until lock is obtained */
     buffer_lock(buf);
     /* Copy data from temp buffer to actual buffer */
