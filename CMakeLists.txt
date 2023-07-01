@@ -1,6 +1,13 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.22)
 
-project(ultramat VERSION 0.1.5)
+if(${CMAKE_VERSION} VERSION_LESS 3.22)
+    message("Using older CMake version than 3.22")
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.{CMAKE_MINOR_VERSION})
+endif()
+
+project(ultramat
+    LANGUAGES
+    C)
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -19,11 +26,27 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Collect all header files in the include directory
     file(GLOB HEADER_FILES "${HEADER_DIR}/*.h")
 
-    # Compiler options release
-    set(ULTRAMAT_OPTIONS
+    if(ULTRA_BUILD_DEBUG)
+        message("Debug build")
+        # Compiler options release
+        set(ULTRAMAT_OPTIONS
+            "-Og"
+            "-Wall"
+            "-Wextra"
+            "-g")
+        set(ULTRAMAT_DEFS
+            "-DGTK_DEBUG=interactive"
+            "-DG_DEBUG=fatal-warnings"
+            CACHE STRING "")
+        add_definitions("-DGTK_DEBUG")
+    else()
+        message("release build")
+        # Compiler options release
+        set(ULTRAMAT_OPTIONS
             "-O3"
             "-Wall"
             "-Wextra")
+    endif()
 
     # Resources
     set(RES
@@ -33,7 +56,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     # Let's nicely support folders in IDEs
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 endif()
 
 # Use the package PkgConfig to detect GTK+ headers/library files
@@ -50,5 +72,14 @@ link_directories(${GTK3_LIBRARY_DIRS})
 set(BUILD_TESTS OFF CACHE BOOL "Build tests")
 add_subdirectory(ext/c-periphery)
 
-# Source files
-add_subdirectory(src)
+# Release Target
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+
+# Link the target to the GTK+ libraries (pthread gets linked through GTK3)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GTK3_LIBRARIES} periphery)
+
+# Link to c-periphery lib headers
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/ext/c-periphery/src ${HEADER_DIR})
+# Add compile options to target
+target_compile_options(${PROJECT_NAME} PRIVATE ${ULTRAMAT_OPTIONS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${ULTRAMAT_DEFS})
