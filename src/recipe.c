@@ -88,12 +88,6 @@ u_recipe_info_new(UIngredient *ing, guint8 quantity)
     return temp;
 }
 
-static void
-u_recipe_info_delete(struct RecipeInfo *info)
-{
-    free(info);
-}
-
 /**
  * @brief GFunc for ingredients GList checking if all ingredients are selected
  * @param data RecipeInfo
@@ -113,7 +107,7 @@ u_recipe_list_check_available(GSList *list, guint ingCount)
 
     if(!data)
     {
-        g_print("Availability: NULL\n");
+        g_print("RecipeInfo: NULL\n");
         return FALSE;
     }
 
@@ -232,6 +226,34 @@ u_recipe_new(const gchar *name, guint id, gboolean available)
     rec->available = available;
     rec->ingredients = NULL;
     return rec;
+}
+
+/**
+ * @brief Get quantity and current position for constructing serial buffer
+ * @param rec active recipe
+ * @param idx nth ingredient in list
+ * @param pos current position of ingredient
+ * @param quantity quantity of ingredient
+ * @return TRUE on success | FALSE otherwise
+ */
+gboolean
+u_recipe_get_nth_ingredient_info(URecipe *rec, guint idx, gint8 *pos, guint *quantity)
+{
+    if(rec == NULL)
+        return FALSE;
+
+    if(idx > u_recipe_get_ingredient_count(rec))
+        return FALSE;
+
+    struct RecipeInfo *info = NULL;
+    if((info = g_slist_nth_data(rec->ingredients, idx)) == NULL)
+        return FALSE;
+
+    /* we don't check if position is initialized because it should be checked already */
+    *pos = u_ingredient_get_position(info->ing);
+    *quantity = info->quantity;
+
+    return TRUE;
 }
 
 #ifdef ULTRA_DEBUG
