@@ -7,6 +7,7 @@
 #include "drinklists.h"
 #include "serialcom.h"
 #include "pages.h"
+#include "gui.h"
 
 /* System includes */
 #include <glib.h>
@@ -37,34 +38,11 @@ static gboolean MOTORS_ENABLED = FALSE;
 
 /* ========== STATIC FUNCTION DECLARATION ========== */
 
-static void show_error_msg(gchar *errorStr);
 static void cb_reset_toggle_status(GtkToggleButton *toggleButton, gulong handlerId);
 static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId, GtkTreeIter *toSetIter);
 static void cb_set_switch_state(GtkSwitch *sw, gboolean newState);
 
 /* ========== STATIC FUNCTION IMPLEMENTATION ========== */
-
-/**
- * @brief shows a simple modal dialog presenting an error string
- * @todo implement this as helper function in gui.c -> no need for g_mainWindow
- * @param errorStr error string
- */
-static void
-show_error_msg(gchar *errorStr)
-{
-    GtkWidget *dialog;
-
-    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-    dialog = gtk_message_dialog_new(g_mainWindow,
-            flags,
-            GTK_MESSAGE_ERROR,
-            GTK_BUTTONS_CLOSE,
-            "%s\n",
-            errorStr);
-
-    gtk_dialog_run (GTK_DIALOG (dialog));
-    gtk_widget_destroy(dialog);
-}
 
 /**
  * @brief Reset the combo box to a former ingredient or to nothing
@@ -151,7 +129,7 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
     // Check if active ingredient already holds a position
     if(u_ingredient_get_selected(activeIng))
     {
-        show_error_msg("Ingredient is already selected elsewhere!");
+        gui_show_error_modal("Ingredient is already selected elsewhere!");
         // check whether combo box held ingredient before
         if(formerIng == NULL)
         {
@@ -212,7 +190,7 @@ on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
         if(serialcom_initialize_connection() != 0)
         {
             cb_set_switch_state(motorSwitch, FALSE);
-            show_error_msg("Unable to open serial connection\n"
+            gui_show_error_modal("Unable to open serial connection\n"
                     "Check USB cable connection!");
         }
         else
@@ -228,7 +206,7 @@ on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
         if(serialcom_cancel_connection() != 0)
         {
             cb_set_switch_state(motorSwitch, FALSE);
-            show_error_msg("Unable to close serial connection!");
+            gui_show_error_modal("Unable to close serial connection!");
             return FALSE;
         }
         else
@@ -282,7 +260,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     if(!MOTORS_ENABLED)
     {
         // bail out if motor switch is not activated
-        show_error_msg("Motors are not activated, start Serial first!");
+        gui_show_error_modal("Motors are not activated, start Serial first!");
         cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
         return;
     }
@@ -292,7 +270,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     if(activeRecipe == NULL)
     {
         cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
-        show_error_msg("Error fetching recipe information!");
+        gui_show_error_modal("Error fetching recipe information!");
         g_object_unref(activeRecipe);
         return;
     }
@@ -301,7 +279,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     if(!available)
     {
         cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
-        show_error_msg("Recipe is not available!");
+        gui_show_error_modal("Recipe is not available!");
     }
     else
     {
@@ -309,7 +287,7 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
         if(serialcom_start_order(activeRecipe) != 0)
         {
             cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
-            show_error_msg("Error starting mixing!");
+            gui_show_error_modal("Error starting mixing!");
             g_object_unref(activeRecipe);
             return;
         }
