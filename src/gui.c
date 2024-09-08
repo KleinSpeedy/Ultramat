@@ -29,12 +29,10 @@ extern gulong g_handlerIdMotorSwitch;
 
 /* function definitions */
 
-void guiHandler(int argc, char **argv)
+void gui_thread()
 {
     GtkCssProvider *css_provider = gtk_css_provider_new();
     gtk_css_provider_load_from_path(css_provider, "res/style.css", NULL);
-
-    gtk_init(&argc, &argv);
 
     /* Create "broad" layout */ 
     //TODO: remove g_vars and refactor
@@ -53,7 +51,7 @@ void guiHandler(int argc, char **argv)
         GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     gtk_widget_show_all(GTK_WIDGET(g_mainWindow));
-
+    // Start GUI application
     gtk_main();
 }
 

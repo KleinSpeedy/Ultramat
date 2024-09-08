@@ -3,7 +3,7 @@
 
 #include <gtk/gtk.h>
 
-void guiHandler(int argc, char **argv);
+void gui_thread();
 
 #define WIN_WIDTH           1280
 #define WIN_HEIGHT          800

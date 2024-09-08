@@ -45,6 +45,9 @@ u_recipe_new(const gchar *name, guint id, gboolean available);
 gboolean
 u_recipe_append_ingredient(URecipe *rec, UIngredient *ing, guint8 quantity);
 
+gboolean
+u_recipe_get_nth_ingredient_info(URecipe *rec, guint idx, gint8 *pos, guint *quantity);
+
 G_END_DECLS
 
 #ifdef ULTRA_DEBUG

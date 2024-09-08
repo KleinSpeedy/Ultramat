@@ -6,6 +6,10 @@
 
 int main(int argc, char **argv)
 {
+    // start by initializing GUI-GTK thread
+    if(!gtk_init_check(&argc, &argv))
+        return EXIT_FAILURE;
+
     // Create ListStores holding drink information
     lists_create_ingredient_store();
     lists_create_recipe_store();
@@ -17,7 +21,7 @@ int main(int argc, char **argv)
 
     // start threads
     serialcom_start_handler_thread();
-    guiHandler(argc, argv);
+    gui_thread();
 
     // stop serial thread before exiting
     serialcom_stop_handler_thread();

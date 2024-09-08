@@ -9,7 +9,7 @@ struct _UIngredient
 {
     GObject parent_instance;
 
-    const gchar *name;        /* Name of ingredient */
+    const gchar *name;  /* Name of ingredient */
     guint id;           /* ingredient identifier */
     gint8 position;     /* position on axis, needs to be signed int so -1 can be initial value */
     gboolean selected;  /* ingredient currently selected or not */
