@@ -132,9 +132,9 @@ cb_set_switch_state(GtkSwitch *sw, gboolean newState)
 void
 on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
 {
-    GtkTreeModel *comboModel;
-    GtkTreeIter  activeIter, *formerIter;
-    UIngredient *activeIng, *formerIng;
+    GtkTreeModel *comboModel = NULL;
+    GtkTreeIter  activeIter, *formerIter = NULL;
+    UIngredient *activeIng = NULL, *formerIng = NULL;
 
     // Get combo position num from callback data
     gint8 comboPosition = GPOINTER_TO_INT(data);
@@ -152,6 +152,7 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
     if(u_ingredient_get_selected(activeIng))
     {
         show_error_msg("Ingredient is already selected elsewhere!");
+        // check whether combo box held ingredient before
         if(formerIng == NULL)
         {
             // position held no ingredient before
@@ -163,12 +164,13 @@ on_combo_pos_changed(GtkComboBox *comboBox, gpointer data)
             formerIter = lists_iter_get_by_position(u_ingredient_get_position(formerIng));
             cb_reset_combo_box(comboBox, g_handlerIds[comboPosition], formerIter);
             gtk_tree_iter_free(formerIter);
-        }
 
-        g_object_unref(formerIng);
+            g_object_unref(formerIng);
+        }
         g_object_unref(activeIng);
         return;
     }
+
     // No Ingredient holds current position
     if(formerIng == NULL)
     {
@@ -219,6 +221,8 @@ on_motor_switch_toggle(GtkSwitch *motorSwitch, gboolean state, gpointer data)
         }
     }
     // new stop signal
+    // TODO: Stopping here crashes core, stop thread first?
+    // Cant just cancel connection from here as serial thread as to do it
     else
     {
         if(serialcom_cancel_connection() != 0)
@@ -275,20 +279,19 @@ void
 on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
 {
     (void) data;
-    /*
     if(!MOTORS_ENABLED)
     {
         // bail out if motor switch is not activated
         show_error_msg("Motors are not activated, start Serial first!");
-        cb_reset_toggle_status(orderButton, g_handlerIdComboOrder);
+        cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
         return;
     }
-    */
+
     URecipe *activeRecipe = lists_recipe_get_active_recipe();
 
     if(activeRecipe == NULL)
     {
-        cb_reset_toggle_status(orderButton, g_handlerIdComboOrder);
+        cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
         show_error_msg("Error fetching recipe information!");
         g_object_unref(activeRecipe);
         return;
@@ -297,12 +300,19 @@ on_recipe_order_toggle(GtkToggleButton *orderButton, gpointer data)
     gboolean available = u_recipe_is_available(activeRecipe);
     if(!available)
     {
-        cb_reset_toggle_status(orderButton, g_handlerIdComboOrder);
+        cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
         show_error_msg("Recipe is not available!");
     }
     else
     {
-        g_print("Starting movement...");
+        g_print("Starting movement...\n");
+        if(serialcom_start_order(activeRecipe) != 0)
+        {
+            cb_reset_toggle_status(orderButton, g_handlerIdOrderStart);
+            show_error_msg("Error starting mixing!");
+            g_object_unref(activeRecipe);
+            return;
+        }
     }
 
     g_object_unref(activeRecipe);
