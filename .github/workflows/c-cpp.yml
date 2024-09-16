@@ -7,7 +7,6 @@ on:
 
 jobs:
   build:
-    
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository and submodules
@@ -20,4 +19,4 @@ jobs:
           docker build -t docker-ultra-build .
           # Mount project
           docker run -v $(pwd):/ultramat docker-ultra-build \
-          /bin/bash -c "./bootstrap.sh && ./dewit.sh -r"
+          /bin/bash -c "meson setup build && ./dewit.sh -r && ./dewit.sh -d"
