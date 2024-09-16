@@ -5,7 +5,6 @@
 
 UI for a self-built mixing robot. Stepper control through serial connection to a Arduino.
 
----
 ### Project Setup
 
 Ultramat-project has 2 repositorys:  
@@ -15,39 +14,22 @@ and
 
 [Arduino Source Repository](https://github.com/KleinSpeedy/Ultramat-Arduino)
 
+### Development
 
-**Project Setup using VSCode:**  
+Setup meson:
+```sh
+meson setup build
+```
 
-- `git clone https://github.com/KleinSpeedy/Ultramat.git`
-- `git clone https://github.com/KleinSpeedy/Ultramat-Arduino.git`
-- Install MS-VSCode C++ Extension Pack
-- `cd Ultramat` and open VSCode in the project directory
-- Add Ultramat-Arduino Folder to VSC-Workspace
+Build debug target:
+```sh
+./dewit.sh -d
+```
 
-**Using CLion or Neovim:**
-
-- Build project using CMake as this creates needed json for clangd
-
----
-### Dependencies
-**"Main" Repo:**
-
-- [GTK Setup for Linux](https://www.gtk.org/docs/installations/linux)
-- Install all Dependencies
-
-**Arduino Repo:**
-
-- See Arduino README
-
----
-
-`dewit.sh`  
-
-Builds GTK Project.
-
-`run.sh`  
-
-Runs Executable.
+Run debug target with GTK inspector:
+```sh
+./run.sh -d
+```
 
 ### TODOS
 

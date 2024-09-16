@@ -7,15 +7,18 @@
 help()
 {
     echo "Usage of $(basename $0) util script"
-    echo -e "\t" "-h" "\t" "prints this message"
-    echo -e "\t" "-d" "\t" "run debug gtk target"
-    echo -e "\t" "-r" "\t" "run release gtk target"
+    echo "\t" "-h" "\t" "prints this message"
+    echo "\t" "-d" "\t" "run debug gtk target"
+    echo "\t" "-r" "\t" "run release gtk target"
 }
 
 runTarget()
 {
-    WHERE=$1
-    ./build/$WHERE/ultramat
+    suffix=""
+    if [ $1 = "debug" ]; then
+        suffix="_dbg"
+    fi
+    ./build/Ultramat$suffix
 }
 
 while getopts ":hrd" opt; do
@@ -28,6 +31,9 @@ while getopts ":hrd" opt; do
             exit;;
         d) # run with debugging
             GTK_DEBUG=interactive runTarget debug
+            exit;;
+        \?) # Invalid option
+            help
             exit;;
     esac
 done
