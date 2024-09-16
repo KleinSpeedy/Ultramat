@@ -151,7 +151,7 @@ u_recipe_get_id(URecipe *self)
 }
 
 void
-u_recipe_set_id(URecipe *self, uint id)
+u_recipe_set_id(URecipe *self, guint id)
 {
     if(!self)
         return;
