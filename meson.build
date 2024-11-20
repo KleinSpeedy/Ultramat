@@ -19,11 +19,16 @@ c_periphery_opts.add_cmake_defines({'BUILD_TESTS': false})
 c_periphery_proj = cmake.subproject('c-periphery', options: c_periphery_opts)
 c_periphery_dep = c_periphery_proj.dependency('periphery')
 
+# Math library
+cc = meson.get_compiler('c')
+math_dep = cc.find_library('m', required: true)
+
 # Dependencies
 deps = [
   dependency('gtk+-3.0'),
   dependency('glib-2.0'),
   dependency('gobject-2.0'),
+  math_dep,
   c_periphery_dep
 ]
 

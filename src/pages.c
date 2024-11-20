@@ -1,9 +1,11 @@
 /* This file populates the different stack pages. */
 
 #include "checks.h"
-#include "drinklists.h"
 #include "pages.h"
-#include "callbacks.h"
+#include "callbacks_position.h"
+#include "drinklists.h"
+#include "gui.h"
+
 #include <glib.h>
 
 /* "private" function declaration */
@@ -12,11 +14,6 @@ static void populateStackPage_One(GtkStack *mainStack);
 static void populateStackPage_Two(GtkStack *mainStack);
 static void populateStackPage_Three(GtkStack *mainStack);
 static void populateStackPage_Four(GtkStack *mainStack);
-
-// HACK: Find better way to pass handler IDs between callback and connection
-extern gulong g_handlerIds[PAGES_COMBO_POS_NUM];
-extern gulong g_handlerIdOrderStart;
-extern gulong g_handlerIdComboOrder;
 
 /* function declaration */
 
@@ -119,12 +116,12 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkEntry *entryPos5 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos5)));
     GtkEntry *entryPos6 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos6)));
 
-    gtk_entry_set_text(entryPos1, "Zutat auswählen!");
-    gtk_entry_set_text(entryPos2, "Zutat auswählen!");
-    gtk_entry_set_text(entryPos3, "Zutat auswählen!");
-    gtk_entry_set_text(entryPos4, "Zutat auswählen!");
-    gtk_entry_set_text(entryPos5, "Zutat auswählen!");
-    gtk_entry_set_text(entryPos6, "Zutat auswählen!");
+    gtk_entry_set_text(entryPos1, RESET_TEXT);
+    gtk_entry_set_text(entryPos2, RESET_TEXT);
+    gtk_entry_set_text(entryPos3, RESET_TEXT);
+    gtk_entry_set_text(entryPos4, RESET_TEXT);
+    gtk_entry_set_text(entryPos5, RESET_TEXT);
+    gtk_entry_set_text(entryPos6, RESET_TEXT);
 
     gtk_editable_set_editable(GTK_EDITABLE(entryPos1), FALSE);
     gtk_editable_set_editable(GTK_EDITABLE(entryPos2), FALSE);
@@ -135,18 +132,35 @@ void populateStackPage_One(GtkStack *mainStack)
 
     // connect callback handler IDs
     // TODO: All positions +1 when pressure pumps are added
-    g_handlerIds[PAGES_COMBO_POS_ONE] = g_signal_connect(comboPos1, "changed",
-                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_ONE));
-    g_handlerIds[PAGES_COMBO_POS_TWO] = g_signal_connect(comboPos2, "changed",
-                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_TWO));
-    g_handlerIds[PAGES_COMBO_POS_THREE] = g_signal_connect(comboPos3,"changed",
-                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_THREE));
-    g_handlerIds[PAGES_COMBO_POS_FOUR] = g_signal_connect(comboPos4, "changed",
-                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_FOUR));
-    g_handlerIds[PAGES_COMBO_POS_FIVE] = g_signal_connect(comboPos5, "changed",
-                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_FIVE));
-    g_handlerIds[PAGES_COMBO_POS_SIX] = g_signal_connect(comboPos6, "changed",
-                G_CALLBACK(on_combo_pos_changed), GUINT_TO_POINTER(PAGES_COMBO_POS_SIX));
+    gulong id = g_signal_connect(comboPos1, "changed",
+            G_CALLBACK(cb_on_combo_position_changed),
+            GINT_TO_POINTER(PAGES_COMBO_POS_ONE));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_ONE, id);
+
+    id = g_signal_connect(comboPos2, "changed",
+            G_CALLBACK(cb_on_combo_position_changed),
+            GINT_TO_POINTER(PAGES_COMBO_POS_TWO));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_TWO, id);
+
+    id = g_signal_connect(comboPos3, "changed",
+            G_CALLBACK(cb_on_combo_position_changed),
+            GINT_TO_POINTER(PAGES_COMBO_POS_THREE));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_THREE, id);
+
+    id = g_signal_connect(comboPos4, "changed",
+            G_CALLBACK(cb_on_combo_position_changed),
+            GINT_TO_POINTER(PAGES_COMBO_POS_FOUR));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_FOUR, id);
+
+    id = g_signal_connect(comboPos5, "changed",
+            G_CALLBACK(cb_on_combo_position_changed),
+            GINT_TO_POINTER(PAGES_COMBO_POS_FIVE));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_FIVE, id);
+
+    id = g_signal_connect(comboPos6, "changed",
+            G_CALLBACK(cb_on_combo_position_changed),
+            GINT_TO_POINTER(PAGES_COMBO_POS_SIX));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_SIX, id);
 
     // make combo boxes big enough, makes everything else bigger too
     const int comboWidth = 200, comboHeight = 60;
@@ -266,11 +280,13 @@ void populateStackPage_Two(GtkStack *mainStack)
     CHECK_WIDGET(progressbarLabel, "Progressbar label");
 
     /* Connect order-recipe combo box with callback */
-    g_handlerIdComboOrder = g_signal_connect(comboOrder, "changed",
-                                             G_CALLBACK(on_combo_order_changed), NULL);
+    gulong id = g_signal_connect(comboOrder, "changed",
+            G_CALLBACK(cb_on_combo_order_changed), NULL);
+    cb_set_combo_order_callback_id(id);
 
-    g_handlerIdOrderStart = g_signal_connect(orderStartButton, "toggled",
-                                             G_CALLBACK(on_recipe_order_toggle), NULL);
+    id = g_signal_connect(orderStartButton, "toggled",
+            G_CALLBACK(cb_on_recipe_order_toggle), NULL);
+    cb_set_button_order_callback_id(id);
 
     /* pack progressbar and label into own box and align properly */
     gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), FALSE, FALSE, 0);

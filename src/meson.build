@@ -1,14 +1,11 @@
 # Source file directory
 
 source_files=[
-  files('buffer.c'),
-  files('callbacks.c'),
+  files('callbacks_position.c'),
   files('drinklists.c'),
   files('drinks.c'),
   files('gui.c'),
-  files('ingredient.c'),
   files('main.c'),
-  files('pages.c'),
-  files('recipe.c'),
-  files('serialcom.c')
+  files('dynamic_array.c'),
+  files('pages.c')
 ]

@@ -1,269 +1,206 @@
-/* This file is the main implementation for the Drinks and Recipes Management of the ultramat.
- * It consists of reading the resource files and extracting the data into recipes/ingredients arrays.
-*/
+/*
+ * This file is the main implementation for the Drinks and Recipes Management of
+ * the ultramat. It consists of reading the resource files and extracting the
+ * data into recipes/ingredients arrays.
+ */
+
+#include "drinks.h"
+#include "dynamic_array.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "checks.h"
-#include "drinks.h"
-#include "drinklists.h"
 
-#define INPUT_BUFFER_SIZE 128
+#define BUFFER_SIZE 256
 
-const char * const ingFileStr = "res/ingredients.txt";
-const char * const recFileStr = "res/recipes.txt";
+static const char * const ingFileStr = "res/ingredients.txt";
+static const char * const recFileStr = "res/recipes.txt";
 
-/* ========== HELPER FUNCTIONS ========== */
+static const char * const SEPARATOR = ";";
 
-/**
- * @brief convert a number as a char to an integer (multi digit possible)
- * 
- * @param buffer whole string with char numbers
- * @param start start of specific char number
- * @param end end of specific char number
- * @return guint converted number
- */
-static guint
-drinks_str_to_number(const gchar *buffer, guint start, guint end)
+// TODO: Can this be done better ?
+static VLArray_t ingArray;
+static VLArray_t recArray;
+
+// Type implementations for recipe and ingredient type
+
+static int dt_recipe_append_pair(Recipe *rec, uint32_t id, uint32_t count)
 {
-    guint convertedNumber = 0;
-    guint digitCount = end - start;
-    
-    gchar *strNumber = g_malloc0(digitCount);
-    CHECK_ALLOC(strNumber);
+    const uint32_t nextSize = rec->ingCount + 1;
 
-    strncpy(strNumber, &buffer[start], digitCount);
-    convertedNumber = atoi(strNumber);
+    rec->ingPairs = realloc(rec->ingPairs, sizeof(*rec->ingPairs) * nextSize);
+    if(!rec->ingPairs)
+        return 1;
 
-    g_free(strNumber);
-    return convertedNumber;
+    rec->ingPairs[rec->ingCount].id = id;
+    rec->ingPairs[rec->ingCount].count = count;
+    rec->ingCount++;
+    return 0;
 }
 
-/* ========== STATIC FUNCTIONS ========== */
-
-static FILE *
-drinks_open_ingredients_file()
+// TODO: error check possible?
+static void ingredient_create(char *input, Ingredient *ing)
 {
+    int name_done = 0;
+
+    char *part_str = strtok(input, SEPARATOR);
+    while(part_str != NULL)
+    {
+        // TODO: Get rid of stupid bool check
+        if(name_done == 0)
+        {
+            strncpy(ing->name, part_str, MAX_NAME_LENGTH);
+            name_done = 1;
+        }
+        else
+        {
+            ing->id = atoi(part_str);
+            break;
+        }
+        part_str = strtok(NULL, SEPARATOR);
+    }
+}
+
+static void recipe_create(char *input, Recipe *rec)
+{
+    char *part_str = strtok(input, SEPARATOR);
+    strncpy(rec->name, part_str, MAX_NAME_LENGTH);
+
+    part_str = strtok(NULL, SEPARATOR);
+    rec->id = atoi(part_str);
+
+    // after reading recipe id only id count pairs remain
+    part_str = strtok(NULL, "-");
+
+    // TODO: This can be done better
+    uint16_t ing_id = 0, ing_count = 0;
+    uint8_t id_or_count = 0;
+    while(part_str != NULL)
+    {
+
+        if(id_or_count == 0)
+        {
+            ing_id = atoi(part_str);
+            part_str = strtok(NULL, SEPARATOR);
+            id_or_count = 1;
+        }
+
+        if(part_str == NULL)
+        {
+            // TODO: Proper error log
+            fprintf(stderr, "Error during id count pair decoding\n");
+            return;
+        }
+
+        if(id_or_count == 1)
+        {
+            ing_count = atoi(part_str);
+            part_str = strtok(NULL, "-");
+            id_or_count = 0;
+
+            if(dt_recipe_append_pair(rec, ing_id, ing_count) != 0)
+            {
+                // TODO: Proper error log
+                fprintf(stderr, "Error during id count pair decoding\n");
+                return;
+            }
+        }
+        // empty string with newline only is left at the end
+        if(strcmp(part_str, "\n") == 0)
+        {
+            break;
+        }
+    }
+}
+
+Ingredient *drinks_io_get_ingredient_by_id(uint16_t id)
+{
+    Ingredient *ing = NULL, *temp = NULL;
+    for(size_t i = 0; i < ingArray.used; i++)
+    {
+        // TODO: Id is index in array, so we could use this function directly?
+        temp = vla_get_elem_at(&ingArray, i);
+        if(temp->id == id)
+        {
+            ing = temp;
+            break;
+        }
+    }
+
+    return ing;
+}
+
+VLArray_t *drinks_io_read_ingredients(void)
+{
+    vla_init(&ingArray, sizeof(Ingredient));
+    char inputBuffer[BUFFER_SIZE] = {0};
+
     FILE *fp = fopen(ingFileStr, "r");
-    CHECK_FILE(fp, ingFileStr);
-    return fp;
-}
+    if(fp == NULL)
+    {
+        // TODO: Error log
+        return NULL;
+    }
 
-static void
-drinks_close_ingredients_file(FILE *fp)
-{
+    while(fgets(inputBuffer, BUFFER_SIZE, fp))
+    {
+        struct Ingredient ing = {0};
+        ingredient_create(inputBuffer, &ing);
+
+        if(vla_append(&ingArray, &ing) != 0)
+        {
+            fclose(fp);
+            return NULL;
+        }
+        memset(inputBuffer, 0 , BUFFER_SIZE);
+    }
+
     fclose(fp);
+    return &ingArray;
 }
 
-/**
- * @brief Read the name of the ingredient and save the offset in buffer for reading ID
- * @param buffer file buffer
- * @param bufferIndex offset in buffer
- * @return name of ingredient
- */
-static const gchar *
-drinks_ingredient_read_name(const gchar *buffer, guint *bufferIndex)
+Recipe *drinks_io_get_recipe_by_id(uint16_t id)
 {
-    for(guint i = 0; buffer[i] != '\n'; ++i)
+    Recipe *rec = NULL, *temp = NULL;
+    for(size_t i = 0; i < recArray.used; i++)
     {
-        if(buffer[i] == ';')
+        temp = vla_get_elem_at(&recArray, i);
+        if(temp->id == id)
         {
-            // Save position for reading ID
-            *bufferIndex = i;
-            return g_strndup(buffer, i);
+            rec = temp;
+            break;
         }
     }
-    // Error reading name!
-    return 0;
-}
-/**
- * @brief Read the ID of the ingredient after the ';'
- * @param buffer file buffer
- * @param fileIndex offset in buffer
- * @return ID of ingredient
- */
-static guint
-drinks_ingredient_read_id(const gchar *buffer, guint fileIndex)
-{
-    for(guint i = fileIndex; buffer[i] != '\n'; ++i)
-    {
-        if(buffer[i] == ';')
-        {
-            return drinks_str_to_number(buffer, fileIndex, i);;
-        }
-    }
-    // TODO: Error handling
-    return 0;
+
+    return rec;
 }
 
-static FILE *
-drinks_open_recipes_file()
+VLArray_t *drinks_io_read_recipes(void)
 {
+    vla_init(&recArray, sizeof(Recipe));
+    char input_buffer[BUFFER_SIZE] = {0};
+
     FILE *fp = fopen(recFileStr, "r");
-    CHECK_FILE(fp, recFileStr);
-    return fp;
-}
+    if(fp == NULL)
+    {
+        // TODO: Error log
+        return NULL;
+    }
 
-static void
-drinks_close_recipes_file(FILE *fp)
-{
+    while(fgets(input_buffer, BUFFER_SIZE, fp))
+    {
+        struct Recipe rec = {0};
+        recipe_create(input_buffer, &rec);
+        // dont bother to free as program will exit anyway
+        if(vla_append(&recArray, &rec) != 0)
+        {
+            // TODO: Error log, what about allocated objects?
+            fclose(fp);
+            return NULL;
+        }
+        memset(input_buffer, 0 , sizeof(input_buffer));
+    }
+
     fclose(fp);
-}
-
-/**
- * @brief Read the name of the recipe and save the offset for the ID
- * @param buffer file buffer
- * @param bufferIndex offset in buffer
- * @return name of recipe
- */
-static const gchar *
-drinks_recipe_read_name(const gchar *buffer, guint *bufferIndex)
-{
-    for(guint i = 0; buffer[i] != '\n'; ++i)
-    {
-        if(buffer[i] == ';')
-        {
-            // save position
-            *bufferIndex = i;
-            return g_strndup(buffer, i);
-        }
-    }
-    return NULL;
-}
-/**
- * @brief Read the ID of the recipe from the buffer
- * @param buffer file buffer
- * @param fileIndex offset in buffer
- * @return ID of recipe
- */
-static guint
-drinks_recipe_read_id(const gchar *buffer, guint fileIndex)
-{
-    for(guint i = fileIndex; buffer[i] != '\n'; ++i)
-    {
-        if(buffer[i] == ';')
-        {
-            return drinks_str_to_number(buffer, fileIndex, i);;
-        }
-    }
-    // TODO: Error handling
-    return 0;
-}
-
-/**
- * @brief Read the list of ingredients for each recipe
- *  Ingredients are separated by ';' and each ingredient has a quantity (number after '-')
- * @param buffer file buffer
- * @param rec Recipe for ingredients list
- */
-static void
-drinks_recipe_read_ingredients(const char *buffer, URecipe *rec)
-{
-    gboolean idRead = FALSE, quantityRead = FALSE;
-    guint lastHit = 0, digitCount = 0;
-    guint ingID = 0, ingQuantity = 0;
-
-    for(guint i = 0; buffer[i] != '\n'; ++i)
-    {
-        if(buffer[i] == ';' && buffer[i+1] != '\n')
-        {
-            lastHit = i + 1; // jump over SemiColon
-            for(guint j = lastHit; buffer[j] != '-'; ++j)
-                digitCount++;
-
-            ingID = drinks_str_to_number(buffer, lastHit, lastHit + digitCount);
-            // reset digit count for next number
-            digitCount = 0;
-            idRead = TRUE;
-        }
-        if(buffer[i] == '-')
-        {
-            lastHit = i + 1; // jump over Dash
-            for(guint j = lastHit; buffer[j] != ';'; ++j)
-                digitCount++;
-
-            ingQuantity = drinks_str_to_number(buffer, lastHit, lastHit + digitCount);
-            // reset digit count for next number
-            digitCount = 0;
-            quantityRead = TRUE;
-        }
-        if(idRead && quantityRead)
-        {
-            // Get ingredient pointer from ingredient ID and append it to GList
-            UIngredient *ing = lists_ingredient_get_by_id(ingID);
-            if(!u_recipe_append_ingredient(rec, ing, ingQuantity))
-                g_print("Error appending ingredient to recipe!");
-            // Reset status booleans
-            idRead = FALSE;
-            quantityRead = FALSE;
-        }
-    }
-}
-
-/* ========== NON-STATIC FUNCTIONS ========== */
-
-/**
- * @brief Read all ingredients from ingredients file and save them in ingredients list store
- *
- * @return OK on success, ERROR otherwise
- */
-InputStatus_t
-drinks_io_read_ingredients()
-{
-    FILE *input = drinks_open_ingredients_file();
-    gchar buffer[INPUT_BUFFER_SIZE];
-    memset(buffer, 0, INPUT_BUFFER_SIZE);
-
-    while(fgets(buffer, INPUT_BUFFER_SIZE, input))
-    {
-        const gchar *name = NULL;
-        guint id, bufferIndex = 0;
-
-        if((name = drinks_ingredient_read_name(buffer, &bufferIndex)) == NULL)
-            return DRINKS_ERROR;
-        // +1 skips semicolon | TODO: Error handling reading id
-        id = drinks_ingredient_read_id(buffer, bufferIndex+1);
-
-        // Create new ingredient object
-        UIngredient *newIng = u_ingredient_new(name, id);
-
-        lists_ingredient_append(newIng);
-    }
-
-    drinks_close_ingredients_file(input);
-    return DRINKS_OK;
-}
-
-/**
- * @brief Read all recipes from recipes file and save them in recipe list store
- *
- * @return OK on success, ERROR otherwise
- */
-InputStatus_t
-drinks_io_read_recipes()
-{
-    FILE *input = drinks_open_recipes_file();
-    gchar buffer[INPUT_BUFFER_SIZE];
-    memset(buffer, 0, INPUT_BUFFER_SIZE);
-
-    while(fgets(buffer, INPUT_BUFFER_SIZE, input))
-    {
-        const gchar *name = NULL;
-        guint id = 0, bufferIndex = 0;
-        gboolean available = FALSE;
-
-        if((name = drinks_recipe_read_name(buffer, &bufferIndex)) == NULL)
-            return DRINKS_ERROR;
-        id = drinks_recipe_read_id(buffer, bufferIndex+1);
-        // Create a new recipe
-        URecipe *newRec = u_recipe_new(name, id, available);
-        // start reading list of ingredients for recipe
-        drinks_recipe_read_ingredients(&buffer[bufferIndex], newRec);
-
-        lists_recipe_append(newRec);
-    }
-
-    drinks_close_recipes_file(input);
-    return DRINKS_OK;
+    return &recArray;
 }

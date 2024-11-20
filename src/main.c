@@ -1,8 +1,9 @@
-/* Main File */
-#include "drinklists.h"
 #include "drinks.h"
-#include "serialcom.h"
+#include "drinklists.h"
+#include "dynamic_array.h"
 #include "gui.h"
+
+#include <gtk/gtk.h>
 
 int main(int argc, char **argv)
 {
@@ -10,20 +11,27 @@ int main(int argc, char **argv)
     if(!gtk_init_check(&argc, &argv))
         return EXIT_FAILURE;
 
-    // Create ListStores holding drink information
-    lists_create_ingredient_store();
-    lists_create_recipe_store();
-    // Read ingredients and recipes from files
-    if(drinks_io_read_ingredients() != DRINKS_OK)
-        return EXIT_FAILURE;
-    if(drinks_io_read_recipes() != DRINKS_OK)
-        return EXIT_FAILURE;
+    // TODO: Delete arrays and their possible dynamic allocs before exiting
 
-    // start threads
-    serialcom_start_handler_thread();
+    // Read ingredients and recipes from files
+    VLArray_t *ingArray = drinks_io_read_ingredients();
+    if(ingArray == NULL)
+    {
+        // TODO: Error log
+        return EXIT_FAILURE;
+    }
+    
+    VLArray_t *recArray = drinks_io_read_recipes();
+    if(recArray == NULL)
+    {
+        // TODO: Error log
+        return EXIT_FAILURE;
+    }
+
+    lists_create_ingredient_store(ingArray);
+    lists_create_recipe_store(recArray);
+
     gui_thread();
 
-    // stop serial thread before exiting
-    serialcom_stop_handler_thread();
     return 0;
 }
