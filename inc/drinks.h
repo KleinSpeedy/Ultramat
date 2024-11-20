@@ -1,30 +1,66 @@
-#ifndef __DRINKS_H__
-#define __DRINKS_H__
+#ifndef DRINKS_H
+#define DRINKS_H
 
-#include <stdbool.h>
+#include "dynamic_array.h"
+
 #include <stdint.h>
-#include <gtk/gtk.h>
-#include "recipe.h"
 
-/* functions */
+#define MAX_NAME_LENGTH     128
 
-typedef enum
+typedef struct Ingredient
 {
-    DRINKS_OK = 0,  /* No errors during reading files */
-    DRINKS_ERROR,   /* Error during reading files */
+    char name[MAX_NAME_LENGTH];
+    uint16_t id;
+} Ingredient;
 
-    DRINKS_STATUS_NUM
-} InputStatus_t;
+typedef struct IdCountPair
+{
+    uint16_t id;
+    uint16_t count;
+} IdCountPair;
 
-guint
-drinks_io_get_num_ingredients();
-guint
-drinks_io_get_num_recipes();
+typedef struct Recipe
+{
+    char name[MAX_NAME_LENGTH];
+    uint16_t id;
 
-InputStatus_t
-drinks_io_read_ingredients();
+    IdCountPair *ingPairs;
+    uint16_t ingCount;
+} Recipe;
 
-InputStatus_t
-drinks_io_read_recipes();
+/**
+ * @brief Get number of ingredients read in from file
+ */
+uint32_t drinks_io_get_num_ingredients(void);
 
-#endif //__DRINKS_H__
+/**
+ * @brief Get pointer to a recipe by id
+ */
+Ingredient *drinks_io_get_ingredient_by_id(uint16_t id);
+
+/**
+ * @brief Read all ingredients from ingredients file and save them in
+ * ingredients list store
+ * @param ingArray array of ingredients
+ * @return OK on success, ERROR otherwise
+ */
+VLArray_t *drinks_io_read_ingredients(void);
+
+/**
+ * @brief Get number of recipes read in from file
+ */
+uint32_t drinks_io_get_num_recipes(void);
+
+/**
+ * @brief Get pointer to a recipe by id
+ */
+Recipe *drinks_io_get_recipe_by_id(uint16_t id);
+
+/**
+ * @brief Read all recipes from recipes file and save them in recipe list store
+ * @param recArray array of recipes
+ * @return 0 on success, 1 otherwise
+ */
+VLArray_t *drinks_io_read_recipes(void);
+
+#endif //DRINKS_H

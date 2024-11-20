@@ -2,47 +2,56 @@
  * This consists of creating the different pages and implementing the main GUI thread.
 */
 
-#include "callbacks.h"
+#include "callbacks_position.h"
 #include "checks.h"
 #include "gui.h"
 #include "pages.h"
 
-/* "private" function declaration */
+#include <gtk/gtk.h>
 
-// create the main Window and main vertical box
-static void createMainWindow();
-// create the main stack that holds the different pages
-static void createWindowStack();
-// create the header line with stack-switcher, title and motor switch
-static void createTopHeader();
+// Create all main window widgets in separate function with their attributes
 
-/* Widgets and Variables */
+static GtkWindow *create_main_window(void);
+static GtkBox *create_main_box(void);
+static GtkStack *create_main_window_stack(void);
+static GtkStackSwitcher *create_main_stack_switcher(GtkStack *mainStack);
+static GtkSwitch *create_main_motor_switch(void);
+static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
+                                     GtkSwitch *mainMotorSwitch,
+                                     GtkBox *mainBox);
 
-GtkWindow *g_mainWindow;
-GtkBox *g_mainBox;
-GtkStack *g_mainStack;
-GtkStackSwitcher *g_mainStackSwitcher;
-GtkSwitch *g_mainMotorSwitch;
+// HACK: Find better solution than static var and getter
+static GtkWindow *mainWindow_;
+static GtkWindow *get_main_window(void)
+{
+    return mainWindow_;
+}
 
-// HACK: get handler id for motor switch
-extern gulong g_handlerIdMotorSwitch;
-
-/* function definitions */
-
-void gui_thread()
+void gui_thread(void)
 {
     GtkCssProvider *css_provider = gtk_css_provider_new();
     gtk_css_provider_load_from_path(css_provider, "res/style.css", NULL);
 
-    /* Create "broad" layout */ 
-    //TODO: remove g_vars and refactor
-    createMainWindow();
-    createWindowStack();
-    createTopHeader();
-    gtk_box_reorder_child(g_mainBox, GTK_WIDGET(g_mainStack), 1);
+    /* Create containers and navigation widgets */
+
+    GtkWindow *mainWindow = create_main_window();
+    GtkBox *mainBox = create_main_box();
+    gtk_container_add(GTK_CONTAINER(mainWindow), GTK_WIDGET(mainBox));
+    // TODO: Find better alternative
+    mainWindow_ = mainWindow;
+
+    GtkStack *mainStack = create_main_window_stack();
+    gtk_box_pack_start(mainBox, GTK_WIDGET(mainStack), TRUE, TRUE, 0);
+    GtkStackSwitcher *mainStackSwitcher = create_main_stack_switcher(mainStack);
+    GtkSwitch *mainMotorSwitch = create_main_motor_switch();
+
+    // create the main top header for navigation and motor control
+    create_window_top_header(mainStackSwitcher, mainMotorSwitch, mainBox);
+    // push header and navigational elements to top position
+    gtk_box_reorder_child(mainBox, GTK_WIDGET(mainStack), 1);
 
     /* Stack pages */
-    createStackPages(g_mainStack);
+    createStackPages(mainStack);
 
     /* apply style.css to window */
     gtk_style_context_add_provider_for_screen(
@@ -50,55 +59,85 @@ void gui_thread()
         GTK_STYLE_PROVIDER(css_provider),
         GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-    gtk_widget_show_all(GTK_WIDGET(g_mainWindow));
+    gtk_widget_show_all(GTK_WIDGET(mainWindow));
     // Start GUI application
     gtk_main();
 }
 
-static void createMainWindow()
+static GtkWindow *
+create_main_window(void)
 {
     /* Main window */
-    g_mainWindow = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-    CHECK_WIDGET(g_mainWindow, "Main Window");
+    GtkWindow *window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+    CHECK_WIDGET(window, "Main Window");
 
     /* Window Attributes and signals */
-    gtk_window_set_title(g_mainWindow, "Ultramat Projekt");
-    gtk_window_set_position(g_mainWindow, GTK_WIN_POS_CENTER);
-    gtk_window_set_resizable(g_mainWindow, FALSE);
-    gtk_window_set_default_size(g_mainWindow, WIN_WIDTH, WIN_HEIGHT);
-    g_signal_connect(g_mainWindow, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    gtk_window_set_title(window, "Ultramat Projekt");
+    gtk_window_set_position(window, GTK_WIN_POS_CENTER);
+    gtk_window_set_resizable(window, FALSE);
+    gtk_window_set_default_size(window, WIN_WIDTH, WIN_HEIGHT);
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-    /* vertical orientation for header line and stack pages */
-    g_mainBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
-    CHECK_WIDGET(g_mainBox, "Main Box");
-
-    gtk_container_add(GTK_CONTAINER(g_mainWindow), GTK_WIDGET(g_mainBox));
+    return window;
 }
 
-static void createWindowStack()
+static GtkBox *
+create_main_box(void)
+{
+    /* vertical orientation for header line and stack pages */
+    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+    CHECK_WIDGET(box, "Main Box");
+
+    return box;
+}
+
+static GtkStack *
+create_main_window_stack(void)
 {
     /* Stack holds different pages */
-    g_mainStack = GTK_STACK(gtk_stack_new());
-    CHECK_WIDGET(g_mainStack, "Main Stack");
+    GtkStack *stack  = GTK_STACK(gtk_stack_new());
+    CHECK_WIDGET(stack, "Main Stack");
 
-    gtk_stack_set_transition_type(g_mainStack, GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
-    gtk_stack_set_transition_duration(g_mainStack, TRANSITION_SPEED);
+    gtk_stack_set_transition_type(stack, GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
+    gtk_stack_set_transition_duration(stack, TRANSITION_SPEED);
 
-    gtk_box_pack_start(g_mainBox, GTK_WIDGET(g_mainStack), TRUE, TRUE, 0);
+    return stack;
 }
 
-static void createTopHeader()
+static GtkStackSwitcher *
+create_main_stack_switcher(GtkStack *mainStack)
+{
+    GtkStackSwitcher *stackSwitcher = GTK_STACK_SWITCHER(gtk_stack_switcher_new());
+    CHECK_WIDGET(stackSwitcher, "Stack Switcher");
+    gtk_stack_switcher_set_stack(stackSwitcher, mainStack);
+    gtk_widget_set_name(GTK_WIDGET(stackSwitcher), "mainStackSwitcher");
+    gtk_widget_set_size_request(GTK_WIDGET(stackSwitcher), 100, 100);
+
+    return stackSwitcher;
+}
+
+static GtkSwitch *
+create_main_motor_switch(void)
+{
+    GtkSwitch *motorSwitch = GTK_SWITCH(gtk_switch_new());
+    CHECK_WIDGET(motorSwitch, "Motor Switch");
+    gtk_widget_set_name(GTK_WIDGET(motorSwitch), "motorSwitch");
+    gtk_widget_set_size_request(GTK_WIDGET(motorSwitch), 180, 100);
+
+    // connect motor activate callback
+    gulong id = g_signal_connect(motorSwitch, "state-set",
+            G_CALLBACK(cb_on_motor_switch_toggle), NULL);
+    cb_set_motor_switch_callback_id(id);
+
+    return motorSwitch;
+}
+static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
+                                     GtkSwitch *mainMotorSwitch,
+                                     GtkBox *mainBox)
 {
     /* Fixed Container for placement */
     GtkFixed *headerFixed = GTK_FIXED(gtk_fixed_new());
     CHECK_WIDGET(headerFixed, "Header Layout");
-
-    /* Stack Switcher */
-    g_mainStackSwitcher = GTK_STACK_SWITCHER(gtk_stack_switcher_new());
-    CHECK_WIDGET(g_mainStackSwitcher, "Stack Switcher");
-    gtk_stack_switcher_set_stack(g_mainStackSwitcher, g_mainStack);
-    gtk_widget_set_name(GTK_WIDGET(g_mainStackSwitcher), "mainStackSwitcher");
-    gtk_widget_set_size_request(GTK_WIDGET(g_mainStackSwitcher), 100, 100);
 
     /* Project Header Label */
     GtkLabel *projectTitle = GTK_LABEL(gtk_label_new("Ultramat"));
@@ -106,19 +145,24 @@ static void createTopHeader()
     // set name for css stylesheet
     gtk_widget_set_name(GTK_WIDGET(projectTitle), "projectTitle");
 
-    /* Motor Enable Switch */
-    g_mainMotorSwitch = GTK_SWITCH(gtk_switch_new());
-    CHECK_WIDGET(g_mainMotorSwitch, "Motor Switch");
-    gtk_widget_set_name(GTK_WIDGET(g_mainMotorSwitch), "motorSwitch");
-    gtk_widget_set_size_request(GTK_WIDGET(g_mainMotorSwitch), 180, 100);
-
-    // connect motor activate callback
-    g_handlerIdMotorSwitch = g_signal_connect(g_mainMotorSwitch, "state-set",
-            G_CALLBACK(on_motor_switch_toggle), NULL);
-
-    gtk_fixed_put(headerFixed, GTK_WIDGET(g_mainStackSwitcher), 0, 0);
+    gtk_fixed_put(headerFixed, GTK_WIDGET(mainStackSwitcher), 0, 0);
     gtk_fixed_put(headerFixed, GTK_WIDGET(projectTitle), 560, 25);
-    gtk_fixed_put(headerFixed, GTK_WIDGET(g_mainMotorSwitch), 1100, 0);
+    gtk_fixed_put(headerFixed, GTK_WIDGET(mainMotorSwitch), 1100, 0);
 
-    gtk_box_pack_start(g_mainBox, GTK_WIDGET(headerFixed), FALSE, FALSE, 0);
+    gtk_box_pack_start(mainBox, GTK_WIDGET(headerFixed), FALSE, FALSE, 0);
+}
+
+void
+gui_show_error_modal(const gchar *errorStr)
+{
+    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+    GtkWidget *dialog = gtk_message_dialog_new(get_main_window(),
+                                    flags,
+                                    GTK_MESSAGE_ERROR,
+                                    GTK_BUTTONS_CLOSE,
+                                    "%s\n",
+                                    errorStr);
+
+    gtk_dialog_run(GTK_DIALOG (dialog));
+    gtk_widget_destroy(dialog);
 }
