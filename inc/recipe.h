@@ -23,7 +23,7 @@ u_recipe_set_name(URecipe *self, const gchar *name);
 guint
 u_recipe_get_id(URecipe *self);
 void
-u_recipe_set_id(URecipe *self, uint id);
+u_recipe_set_id(URecipe *self, guint id);
 
 gboolean
 u_recipe_is_available(URecipe *self);
