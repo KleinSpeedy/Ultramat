@@ -11,8 +11,6 @@ int main(int argc, char **argv)
     if(!gtk_init_check(&argc, &argv))
         return EXIT_FAILURE;
 
-    // TODO: Delete arrays and their possible dynamic allocs before exiting
-
     // Read ingredients and recipes from files
     VLArray_t *ingArray = drinks_io_read_ingredients();
     if(ingArray == NULL)
@@ -32,6 +30,10 @@ int main(int argc, char **argv)
     lists_create_recipe_store(recArray);
 
     gui_thread();
+
+    vla_free(ingArray);
+    // TODO: Recipes have dynamic allocations themselves, provide custom free callback
+    vla_free(recArray);
 
     return 0;
 }
