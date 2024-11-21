@@ -40,7 +40,7 @@ int vla_append(VLArray_t *array, void *data)
         array->data = realloc(array->data, newSize * array->elemSize);
         array->size = newSize;
     }
-/* Ignore pointer arithmetic warning, we know what were doing */
+/* Ignore pointer arithmetic warning, we know what we are doing */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-arith"
     void *last = ELEM_AT(array, array->used);
@@ -57,7 +57,7 @@ void *vla_get_elem_at(VLArray_t *array, uint32_t index)
     if(!array)
         return NULL;
 
-/* Ignore pointer arithmetic warning, we know what were doing */
+/* Ignore pointer arithmetic warning, we know what we are doing */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-arith"
     void *elem = ELEM_AT(array, index);

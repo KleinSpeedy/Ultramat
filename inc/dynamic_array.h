@@ -4,16 +4,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct VLArray VLArray_t;
-
-struct VLArray
+typedef struct VLArray
 {
     void *data;         // element data
     size_t elemSize;    // size of elements in bytes
 
     uint32_t size;      // array size
     uint32_t used;      // number of elements in array
-};
+} VLArray_t;
 
 void vla_init(VLArray_t *array, size_t elemSize);
 
