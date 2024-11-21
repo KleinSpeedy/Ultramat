@@ -20,6 +20,8 @@ static gulong comboOrderCbId_;
 static gulong buttonOrderCbId_;
 static gulong switchMotorCbId_;
 
+static gboolean commConnectionActive_;
+
 #define ALREADY_SELECTED_ERROR "Zutat bereits ausgewählt!"
 
 static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId)
@@ -39,6 +41,14 @@ static void cb_reset_toggle_button(GtkToggleButton *tb, gulong handlerId)
     g_signal_handler_block(tb, handlerId);
     gtk_toggle_button_set_active(tb, FALSE);
     g_signal_handler_unblock(tb, handlerId);
+}
+
+static void cb_set_switch_state(GtkSwitch *motorSwitch, gboolean state)
+{
+    g_signal_handler_block(motorSwitch, switchMotorCbId_);
+    gtk_switch_set_state(motorSwitch, state);
+    gtk_switch_set_active(motorSwitch, state);
+    g_signal_handler_unblock(motorSwitch, switchMotorCbId_);
 }
 
 static inline void cb_set_ing_pos(const Ingredient *ing, int pos)
@@ -161,6 +171,7 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
     // user data not used
     (void) data;
 
+    // dont do anything if toggled back to inactive
     if(!gtk_toggle_button_get_active(button))
     {
         return;
@@ -173,6 +184,7 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
         return;
     }
 
+    // check if all ingredients of recipe are active
     for(int i = 0; i < activeRecipe_->ingCount; i++)
     {
         IdCountPair pair = activeRecipe_->ingPairs[i];
@@ -185,6 +197,7 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
         }
     }
 
+    // TODO: Start mixing procedure
     printf("Start mixing\n");
 }
 
@@ -197,9 +210,21 @@ void cb_set_motor_switch_callback_id(uint64_t id)
 
 int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
 {
-    (void) motorSwitch;
-    (void) state;
     (void) data;
+
+    if(state && commConnectionActive_)
+        return TRUE;
+
+    if(state)
+    {
+        // TODO: Activate connection
+        cb_set_switch_state(motorSwitch, TRUE);
+    }
+    else
+    {
+        // TODO: Deactivate connection
+        cb_set_switch_state(motorSwitch, FALSE);
+    }
 
     return TRUE;
 }
