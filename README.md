@@ -26,15 +26,19 @@ Build debug target:
 ./dewit.sh -d
 ```
 
+Build all:
+```sh
+ninja -C build
+```
+
 Run debug target with GTK inspector:
 ```sh
 ./run.sh -d
 ```
 
-### TODOS
-
-- Introduce **position property** and connect it to ComboBox/ComboModel
-- Remove global variables in `gui.c`
-- Check for duplicate IDs while parsing recipes and ingredients
-- Implement cool images on page 1
-- Use G_LOG_LEVEL_DEBUG for debug printing and add CMake debug target
+Testing using virtual serial port with `socat`:
+```sh
+# start socat and check output, should start 2 ports
+socat -d -d -v pty,rawer,echo=0,link=./ttyV0 pty,rawer,echo=0,link=./ttyV1
+# Set application serial path and build project
+```
