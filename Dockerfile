@@ -9,5 +9,5 @@ WORKDIR /ultramat
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install --no-install-recommends -y \
     build-essential \
-    gcc git make pkg-config meson \
+    gcc git make pkg-config meson cmake \
     libgtk-3-0 libgtk-3-dev
