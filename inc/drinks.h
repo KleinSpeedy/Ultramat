@@ -1,7 +1,7 @@
 #ifndef DRINKS_H
 #define DRINKS_H
 
-#include "dynamic_array.h"
+#include "util/dynamic_array.h"
 
 #include <stdint.h>
 
