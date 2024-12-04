@@ -1,11 +1,15 @@
 # Source file directory
 
+# include util files
+util_files=[]
+subdir('util')
+
 source_files=[
   files('callbacks_position.c'),
   files('drinklists.c'),
   files('drinks.c'),
   files('gui.c'),
   files('main.c'),
-  files('dynamic_array.c'),
-  files('pages.c')
+  files('pages.c'),
+  util_files
 ]

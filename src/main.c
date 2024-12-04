@@ -1,6 +1,6 @@
 #include "drinks.h"
 #include "drinklists.h"
-#include "dynamic_array.h"
+#include "util/dynamic_array.h"
 #include "gui.h"
 
 #include <gtk/gtk.h>

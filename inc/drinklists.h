@@ -1,7 +1,7 @@
 #ifndef DRINKLISTS_H
 #define DRINKLISTS_H
 
-#include "dynamic_array.h"
+#include "util/dynamic_array.h"
 
 // Column values for ingredients
 typedef enum {

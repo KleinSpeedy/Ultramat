@@ -1,4 +1,4 @@
-#include "dynamic_array.h"
+#include "util/dynamic_array.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +6,7 @@
 #include <string.h>
 
 #define VLA_INITIAL_SIZE 5
+#define RESIZE_FACTOR 1.6f
 
 #define ELEM_AT(a, N) (a->data + (a->elemSize * N))
 
@@ -36,7 +37,7 @@ int vla_append(VLArray_t *array, void *data)
     
     if(array->size == array->used)
     {
-        const size_t newSize = ceil(array->size * 1.6f);
+        const size_t newSize = ceil(array->size * RESIZE_FACTOR);
         array->data = realloc(array->data, newSize * array->elemSize);
         array->size = newSize;
     }

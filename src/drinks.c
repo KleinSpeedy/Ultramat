@@ -5,7 +5,6 @@
  */
 
 #include "drinks.h"
-#include "dynamic_array.h"
 
 #include <stdio.h>
 #include <string.h>
