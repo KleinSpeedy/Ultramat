@@ -13,14 +13,8 @@ int main(int argc, char **argv)
 
     // Read ingredients and recipes from files
     VLArray_t *ingArray = drinks_io_read_ingredients();
-    if(ingArray == NULL)
-    {
-        // TODO: Error log
-        return EXIT_FAILURE;
-    }
-    
     VLArray_t *recArray = drinks_io_read_recipes();
-    if(recArray == NULL)
+    if(ingArray == NULL || recArray == NULL)
     {
         // TODO: Error log
         return EXIT_FAILURE;

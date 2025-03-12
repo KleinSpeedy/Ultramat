@@ -11,5 +11,6 @@ source_files=[
   files('gui.c'),
   files('main.c'),
   files('pages.c'),
+  files('serialcomms.c'),
   util_files
 ]

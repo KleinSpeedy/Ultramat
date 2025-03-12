@@ -52,4 +52,6 @@ void cb_set_button_order_callback_id(uint64_t id);
 
 void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data);
 
+ComboPositions_t cb_get_position_by_id(uint16_t id);
+
 #endif // CALLBACKS_POSITION_H
