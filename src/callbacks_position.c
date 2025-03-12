@@ -2,6 +2,7 @@
 #include "drinks.h"
 #include "drinklists.h"
 #include "gui.h"
+#include "serialcomms.h"
 
 #include <glibconfig.h>
 #include <stdio.h>
@@ -14,13 +15,15 @@ static const Ingredient *activeIngredients_[PAGES_COMBO_POS_NUM];
 // The recipe selected by the order recipe combo box
 static Recipe *activeRecipe_;
 
+// Callback IDs for ingredient combo boxes and recipe combo box
 static gulong comboCbIds_[PAGES_COMBO_POS_NUM];
 static gulong comboOrderCbId_;
-
+// callback IDs for recipe order toggle button and motor switch
 static gulong buttonOrderCbId_;
 static gulong switchMotorCbId_;
-
-static gboolean commConnectionActive_;
+// indicates whether connection to arduino is currently active
+// TODO: Should this be here??
+static gboolean commConnectionActive_ = FALSE;
 
 #define ALREADY_SELECTED_ERROR "Zutat bereits ausgewählt!"
 
@@ -95,10 +98,6 @@ void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id)
     comboCbIds_[pos] = id;
 }
 
-// TODO: Somehow data always is 0 if used in a separate variable with macro
-// using it directly with macro solves this problem
-// TODO-2: Something is seriously wrong with glong and gulong or long to int
-// conversion from pointer in general
 void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
 {
     GtkTreeModel *treeModel = gtk_combo_box_get_model(comboBox);
@@ -199,6 +198,8 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
 
     // TODO: Start mixing procedure
     printf("Start mixing\n");
+    const int ret = comms_start_new_mixing(activeRecipe_);
+    printf("Return start mixing: %d\n", ret);
 }
 
 void cb_set_motor_switch_callback_id(uint64_t id)
@@ -227,4 +228,17 @@ int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
     }
 
     return TRUE;
+}
+
+ComboPositions_t cb_get_position_by_id(uint16_t id)
+{
+    for(ComboPositions_t pos = PAGES_COMBO_POS_ONE;
+        pos < PAGES_COMBO_POS_NUM;
+        pos++)
+    {
+        if(activeIngredients_[pos]->id == id)
+            return pos;
+    }
+
+    return PAGES_COMBO_POS_INVALID;
 }
