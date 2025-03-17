@@ -3,7 +3,8 @@
 # Ultramat
 ## Automatic Drink Dispenser Project
 
-UI for a self-built mixing robot. Stepper control through serial connection to a Arduino.
+UI for a self-built mixing robot.
+Stepper control through serial connection to a Arduino.
 
 ### Project Setup
 
@@ -36,9 +37,32 @@ Run debug target with GTK inspector:
 ./run.sh -d
 ```
 
-Testing using virtual serial port with `socat`:
+#### Simulation
+
+Testing using virtual serial ports with `socat`:
 ```sh
-# start socat and check output, should start 2 ports
-socat -d -d -v pty,rawer,echo=0,link=./ttyV0 pty,rawer,echo=0,link=./ttyV1
-# Set application serial path and build project
+./scripts/serial_testing.sh
+```
+This opens two serial ports that are symlinked to `/tmp/ttyArduino` and
+`/tmp/ttyBase`.
+They represent the GUI and microcontroller applications.
+
+After starting `socat` open a second terminal:
+```sh
+python3 ./scripts/microcontroller_serial_sim.py
+```
+This starts a python program simulating the microcontroller application.
+It sends and receives serial messages like the microcontroller with a delayed
+response.
+
+The simulation needs the `pyserial` module.
+Install it through `pip` or the system package manager or create e virtual
+environment:
+```sh
+# Create virtual env
+python3 -m venv .venv
+# start venv
+. .venv/bin/activate
+# stop venv
+deactivate
 ```
