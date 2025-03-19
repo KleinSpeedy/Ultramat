@@ -30,7 +30,7 @@ while getopts ":hrd" opt; do
             runTarget release
             exit;;
         d) # run with debugging
-            GTK_DEBUG=interactive runTarget debug
+            GTK_DEBUG=interactive G_DEBUG=fatal-warnings runTarget debug
             exit;;
         \?) # Invalid option
             help
