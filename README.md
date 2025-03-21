@@ -71,3 +71,5 @@ deactivate
 
 - Implement out of order arrival for response messages from microcontroller
     - its possible that to recieve a **done** while waiting for an **acknowledge**
+- possible race conditions in command_queue
+- race conditions in microcontroller_serial_sim (moveMsgCounter)

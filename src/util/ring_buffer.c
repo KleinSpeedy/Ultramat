@@ -1,5 +1,4 @@
 #include "util/ring_buffer.h"
-#include <stdio.h>
 
 #define RING_BUFFER_CAPACITY    RING_BUFFER_MAX_SIZE - 1
 #define RING_BUFFER_END(x)      x->buffer + RING_BUFFER_MAX_SIZE
@@ -26,7 +25,6 @@ int ring_buffer_put(ring_buffer_t *const rb, uint8_t data)
         return -1;
 
     rb->buffer[rb->head] = data;
-    printf("Saving data %d at head %d\n", rb->buffer[rb->head], rb->head);
     rb->head = (rb->head + 1) % RING_BUFFER_MAX_SIZE;
 
     return 0;
@@ -55,7 +53,6 @@ int ring_buffer_peek(ring_buffer_t * const rb, uint8_t *data)
         return -1;
 
     *data = rb->buffer[rb->tail];
-    printf("Peek, head %d tail %d data %d\n",rb->head, rb->tail, *data);
 
     return 0;
 }

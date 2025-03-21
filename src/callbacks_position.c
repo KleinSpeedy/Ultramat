@@ -302,9 +302,10 @@ void cb_cmd_move_done(void)
 {
     recipeStepDoneCounter_++;
     const gdouble progressWidth = (1.0f / activeRecipe_->ingCount) * recipeStepDoneCounter_;
+    // TODO: Floating point comparison
     // make sure we do not pass something above 1.0
     if(progressWidth >= 1.0f)
-        gtk_progress_bar_set_fraction(progressBar_, 1.0f);
+        gtk_progress_bar_set_fraction(progressBar_, .999f);
     else
         gtk_progress_bar_set_fraction(progressBar_, progressWidth);
 
@@ -326,6 +327,7 @@ void cb_error_serial_communication(const char *str)
     // stop serial connection, disable order button and reset switch
     comms_stop_serial_connection();
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), TRUE);
     cb_set_switch_state(motorSwitch_, FALSE);
 
     char errStr[128] = {0};

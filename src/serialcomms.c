@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <string.h>
+#include <termios.h>
 
 typedef struct PositionCountPair
 {
@@ -31,6 +32,8 @@ typedef enum eMsgDecodingState
 // serial handle
 static serial_t *ser_ = NULL;
 #define FREE_SERIAL_HANDLE(x)   serial_free(x); x = NULL
+// TODO: Set this differently
+#define SERIAL_PORT     "/tmp/ttyBase"
 
 // thread handle
 static pthread_t tinfo_;
@@ -69,9 +72,6 @@ int comms_start_new_mixing(Recipe *rec)
 
 int comms_start_serial_connection(void)
 {
-    // TODO: Is setup from GUI thread ok or is it better to wait for serial
-    // thread to signal done??
-
     // allocate serial handle
     if((ser_ = serial_new()) == NULL)
     {
@@ -79,13 +79,16 @@ int comms_start_serial_connection(void)
         return -1;
     }
     // setup serial connection
-    if(serial_open(ser_, "/tmp/ttyBase", 115200) < 0)
+    if(serial_open(ser_, SERIAL_PORT, 115200) < 0)
     {
         // TODO: Better error log
         fprintf(stderr, "serial_open(): %s\n", serial_errmsg(ser_));
         FREE_SERIAL_HANDLE(ser_);
         return -1;
     }
+    // clear serial port buffer before ending
+    tcflush(serial_fd(ser_), TCIFLUSH);
+
     // init command queues
     if(message_handler_init() < 0)
     {
@@ -110,12 +113,11 @@ void comms_stop_serial_connection(void)
     // TODO: is this even possible?
     if(!threadRunning_)
         return;
-
     threadRunning_ = false;
+
     // wait for serial thread to finish
     // TODO: Is this enough or do we need cond variable?
     pthread_join(tinfo_, NULL);
-
     message_handler_deinit();
     serial_close(ser_);
     FREE_SERIAL_HANDLE(ser_);
@@ -154,7 +156,6 @@ static int comms_start_new_mixing_impl(PositionCountPair_t *pc, uint16_t count)
 {
     for(int i = 0; i < count; ++i)
     {
-        printf("start new mixing impl Pos %d %d times\n", pc[i].pos, pc[i].count);
         const cmd_buffer_t next = CMD_BUFFER_MOVE(pc[i].pos, pc[i].count);
         if(message_handler_add_outgoing(next) < 0)
         {
