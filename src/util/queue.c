@@ -4,24 +4,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define QUEUE_SIZE 32
-
-static inline int _cmd_queue_is_full(command_queue_t *q)
+static inline int _cmd_queue_is_full(command_queue_t * const q)
 {
-    return (q->tail + 1) % QUEUE_SIZE == q->head;
+    return (q->head + 1) % QUEUE_MAX_SIZE == q->tail;
 }
 
-static inline int _cmd_queue_is_empty(command_queue_t *q)
+int cmd_queue_is_empty(command_queue_t * const q)
 {
-    return (q->head == -1);
+    return (q->tail == q->head);
 }
 
+// TODO: Change to static alloc with QUEUE_MAX_SIZE known
 int cmd_queue_init(command_queue_t *cq)
 {
-    cq->tail = -1;
-    cq->head = -1;
+    cq->tail = 0;
+    cq->head = 0;
 
-    cq->commands = calloc(QUEUE_SIZE, sizeof(*cq->commands) * QUEUE_SIZE);
+    cq->commands = calloc(QUEUE_MAX_SIZE, sizeof(*cq->commands) * QUEUE_MAX_SIZE);
     if(!cq->commands)
         return -1;
 
@@ -42,45 +41,38 @@ void cmd_queue_free(command_queue_t *cq)
 
 void cmd_queue_print(command_queue_t *cq)
 {
-    for(int i = 0; i < QUEUE_SIZE; i++)
+    // TODO: Prints all elements even if 0
+    for(int i = 0; i < QUEUE_MAX_SIZE; i++)
     {
-        const struct CommandBuffer temp = cq->commands[i];
-        printf("%d %d %s\n", temp.id, temp.cmd, temp.data);
+        const cmd_msg_t temp = cq->commands[i];
+        printf("%d %d %s\n", temp.id, temp.cmdBuffer.cmd, temp.cmdBuffer.data);
     }
 }
 
-int cmd_queue_push(command_queue_t * const cq, const struct CommandBuffer *cmdBuffer)
+int cmd_queue_push(command_queue_t * const cq, const cmd_msg_t *msg)
 {
-    if(!cq || !cmdBuffer)
+    if(!cq || !msg)
         return -1;
 
     if(_cmd_queue_is_full(cq))
         return -1;
 
-    // first push
-    if(_cmd_queue_is_empty(cq))
-        cq->head = 0;
-
-    memcpy(&cq->commands[cq->head], cmdBuffer, sizeof(*cmdBuffer));
-    cq->head = (cq->head + 1) % QUEUE_SIZE;
+    memcpy(&(cq->commands[cq->head]), msg, sizeof(*msg));
+    cq->head = (cq->head + 1) % QUEUE_MAX_SIZE;
     return 0;
 }
 
-int cmd_queue_pop(command_queue_t * const cq, struct CommandBuffer * const cb)
+int cmd_queue_pop(command_queue_t * const cq, cmd_msg_t * const msg)
 {
     if(!cq)
         return -1;
 
-    if(_cmd_queue_is_empty(cq))
+    if(cmd_queue_is_empty(cq))
         return -1;
 
-    // first pop of data
-    if(cq->tail == -1)
-        cq->tail = 0;
-
-    memcpy(cb, &cq->commands[cq->tail], sizeof(*cb));
-    // clear after copy
-    memset(&cq->commands[cq->tail], 0, sizeof(*cb));
-    cq->tail = (cq->tail + 1) % QUEUE_SIZE;
+    memcpy(msg, &cq->commands[cq->tail], sizeof(*msg));
+    // TODO: clear after copy ?
+    // memset(&cq->commands[cq->tail], 0, sizeof(*msg));
+    cq->tail = (cq->tail + 1) % QUEUE_MAX_SIZE;
     return 0;
 }
