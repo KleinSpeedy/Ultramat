@@ -2,6 +2,7 @@ import serial
 from enum import IntEnum, Enum, auto
 import queue
 import threading
+from random import randrange
 
 
 class RecieverState(Enum):
@@ -15,13 +16,12 @@ class RecieverState(Enum):
 
 class Command(IntEnum):
     HELLO_THERE = 0xB0  # initial hello
-    HAPPY_LANDING = 0xB1  # end connection "nicely"
+    STOP = 0xB1  # stop everything
     HOMING_X = 0xC0  # homing procedure X-axis
     HOMING_Y = 0xC1  # homing procedure Y-axis
-    RECIPE_STEP = 0xC2  # move to position + up/down motion
-    STOP = 0xC4  # "emergency" stop
-    CHANGE_POSITION = 0xCA  # move to specific position without going up/down
-    FILL_GLASS = 0xCB  # only up and down motion TODO: Position check
+    MOVE = 0xC2  # move to position + up/down motion
+    MOVE_X = 0xC3  # move to specific position without going up/down
+    MOVE_Y = 0xC4  # only up and down motion TODO: Position check
 
     ACKNOWLEDGE = 0xA0  # Acknowledge a command that was sent
     DONE = 0xA1  # Command is done
@@ -117,6 +117,8 @@ class MessageHandler:
     def __init__(self, input, output):
         self.inQueue = input
         self.outQueue = output
+        self.responseId = 0
+        self.moveMsgCounter = 0
 
     def process_messages(self):
         if not self.inQueue.empty():
@@ -125,10 +127,6 @@ class MessageHandler:
             cmd = message[2]  # Extract command byte
             self.send_ack(id)  # send ack immediatly
             match cmd:
-                case Command.HAPPY_LANDING:
-                    # TODO: ack
-                    threading.Timer(2, self.send_delayed_done, [id]).start()
-                    pass
                 case Command.HELLO_THERE | Command.HOMING_X | Command.HOMING_Y:
                     # TODO: ack, wait 10s and send done
                     threading.Timer(10, self.send_delayed_done, [id]).start()
@@ -137,24 +135,28 @@ class MessageHandler:
                     # TODO ack
                     threading.Timer(1, self.send_delayed_done, [id]).start()
                     pass
-                case Command.CHANGE_POSITION | Command.FILL_GLASS:
-                    # TODO: ack, wait 5s and send done
-                    threading.Timer(5, self.send_delayed_done, [id]).start()
+                case Command.MOVE_X | Command.MOVE_Y | Command.MOVE:
+                    sleepTime = randrange(1, 10) + (self.moveMsgCounter * 3)
+                    self.moveMsgCounter += 1
+                    threading.Timer(sleepTime, self.send_delayed_done, [id]).start()
                     pass
 
     def send_ack(self, id):
-        msg = [0x10, Command.ACKNOWLEDGE, id]
+        msg = [0x10, self.responseId, Command.ACKNOWLEDGE, 0x01, id]
         (high, low) = self.calc_checksum(msg)
         msg.append(high)
         msg.append(low)
+        self.responseId += 1
         self.outQueue.put(msg)
 
     def send_delayed_done(self, id):
-        msg = [0x10, Command.DONE, id]
+        msg = [0x10, self.responseId, Command.DONE, 0x01, id]
         (high, low) = self.calc_checksum(msg)
         msg.append(high)
         msg.append(low)
+        self.responseId += 1
         self.outQueue.put(msg)
+        self.moveMsgCounter -= 1
 
     def calc_checksum(self, buffer) -> (int, int):
         frame_sum = sum(buffer) & 0xFFFF  # Ensure 16-bit value
