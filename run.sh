@@ -9,6 +9,7 @@ help()
     echo "Usage of $(basename $0) util script"
     echo "\t" "-h" "\t" "prints this message"
     echo "\t" "-d" "\t" "run debug gtk target"
+    echo "\t" "-g" "\t" "run debug gtk target with gdb"
     echo "\t" "-r" "\t" "run release gtk target"
 }
 
@@ -21,7 +22,7 @@ runTarget()
     ./build/Ultramat$suffix
 }
 
-while getopts ":hrd" opt; do
+while getopts ":hrdg" opt; do
     case $opt in
         h) # display Help
             help
@@ -31,6 +32,9 @@ while getopts ":hrd" opt; do
             exit;;
         d) # run with debugging
             GTK_DEBUG=interactive G_DEBUG=fatal-warnings runTarget debug
+            exit;;
+        g) # run with gdb
+            GTK_DEBUG=interactive G_DEBUG=fatal-warnings gdb ./build/Ultramat_dbg
             exit;;
         \?) # Invalid option
             help

@@ -66,3 +66,8 @@ python3 -m venv .venv
 # stop venv
 deactivate
 ```
+
+### TODOs
+
+- Implement out of order arrival for response messages from microcontroller
+    - its possible that to recieve a **done** while waiting for an **acknowledge**
