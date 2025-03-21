@@ -16,7 +16,7 @@ typedef struct Ingredient
 typedef struct IdCountPair
 {
     uint16_t id;
-    uint16_t count;
+    uint8_t count;
 } IdCountPair;
 
 typedef struct Recipe
