@@ -118,6 +118,7 @@ class MessageHandler:
         self.inQueue = input
         self.outQueue = output
         self.responseId = 0
+        self.lastSleepTime = 0
         self.moveMsgCounter = 0
 
     def process_messages(self):
@@ -136,9 +137,10 @@ class MessageHandler:
                     threading.Timer(1, self.send_delayed_done, [id]).start()
                     pass
                 case Command.MOVE_X | Command.MOVE_Y | Command.MOVE:
-                    sleepTime = randrange(1, 10) + (self.moveMsgCounter * 3)
                     self.moveMsgCounter += 1
-                    threading.Timer(sleepTime, self.send_delayed_done, [id]).start()
+                    self.lastSleepTime += randrange(1, 5) + (3 * self.moveMsgCounter)
+                    threading.Timer(self.lastSleepTime,
+                                    self.send_delayed_done, [id]).start()
                     pass
 
     def send_ack(self, id):

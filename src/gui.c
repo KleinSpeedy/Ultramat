@@ -155,12 +155,11 @@ static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
 
 void gui_show_error_modal(const gchar *errorStr)
 {
-    gchar *dialogStr = g_strdup(errorStr);
     GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(get_main_window()),
                                     GTK_DIALOG_MODAL,
                                     GTK_MESSAGE_ERROR,
                                     GTK_BUTTONS_CLOSE,
-                                    "%s\n", dialogStr);
+                                    "%s\n", errorStr);
     // Ensure that the dialog box is destroyed when the user responds
     g_signal_connect_swapped(dialog,
             "response",
@@ -168,17 +167,15 @@ void gui_show_error_modal(const gchar *errorStr)
             dialog);
 
     gtk_dialog_run(GTK_DIALOG (dialog));
-    g_free(dialogStr);
 }
 
 void gui_show_info_modal(const char *infoStr)
 {
-    gchar *dialogStr = g_strdup(infoStr);
     GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(get_main_window()),
                                     GTK_DIALOG_MODAL,
                                     GTK_MESSAGE_INFO,
                                     GTK_BUTTONS_CLOSE,
-                                    "%s\n", dialogStr);
+                                    "%s\n", infoStr);
     // Ensure that the dialog box is destroyed when the user responds
     g_signal_connect_swapped(dialog,
             "response",
@@ -186,5 +183,4 @@ void gui_show_info_modal(const char *infoStr)
             dialog);
 
     gtk_dialog_run(GTK_DIALOG (dialog));
-    g_free(dialogStr);
 }
