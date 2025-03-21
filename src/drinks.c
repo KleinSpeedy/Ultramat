@@ -21,8 +21,9 @@ static const char * const SEPARATOR = ";";
 static VLArray_t ingArray;
 static VLArray_t recArray;
 
-// Type implementations for recipe and ingredient type
+// drinktype functions (dt)
 
+// append an ingredient-count pair to recipe
 static int dt_recipe_append_pair(Recipe *rec, uint32_t id, uint32_t count)
 {
     const uint32_t nextSize = rec->ingCount + 1;
@@ -72,11 +73,11 @@ static void recipe_create(char *input, Recipe *rec)
     part_str = strtok(NULL, "-");
 
     // TODO: This can be done better
-    uint16_t ing_id = 0, ing_count = 0;
+    uint16_t ing_id = 0;
+    uint8_t ing_count = 0;
     uint8_t id_or_count = 0;
     while(part_str != NULL)
     {
-
         if(id_or_count == 0)
         {
             ing_id = atoi(part_str);
@@ -93,7 +94,7 @@ static void recipe_create(char *input, Recipe *rec)
 
         if(id_or_count == 1)
         {
-            ing_count = atoi(part_str);
+            ing_count = (uint8_t)atoi(part_str);
             part_str = strtok(NULL, "-");
             id_or_count = 0;
 

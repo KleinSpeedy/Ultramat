@@ -128,6 +128,7 @@ create_main_motor_switch(void)
     gulong id = g_signal_connect(motorSwitch, "state-set",
             G_CALLBACK(cb_on_motor_switch_toggle), NULL);
     cb_set_motor_switch_callback_id(id);
+    cb_set_motor_switch_widget(motorSwitch);
 
     return motorSwitch;
 }
@@ -152,17 +153,38 @@ static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
     gtk_box_pack_start(mainBox, GTK_WIDGET(headerFixed), FALSE, FALSE, 0);
 }
 
-void
-gui_show_error_modal(const gchar *errorStr)
+void gui_show_error_modal(const gchar *errorStr)
 {
-    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-    GtkWidget *dialog = gtk_message_dialog_new(get_main_window(),
-                                    flags,
+    gchar *dialogStr = g_strdup(errorStr);
+    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(get_main_window()),
+                                    GTK_DIALOG_MODAL,
                                     GTK_MESSAGE_ERROR,
                                     GTK_BUTTONS_CLOSE,
-                                    "%s\n",
-                                    errorStr);
+                                    "%s\n", dialogStr);
+    // Ensure that the dialog box is destroyed when the user responds
+    g_signal_connect_swapped(dialog,
+            "response",
+            G_CALLBACK(gtk_widget_destroy),
+            dialog);
 
     gtk_dialog_run(GTK_DIALOG (dialog));
-    gtk_widget_destroy(dialog);
+    g_free(dialogStr);
+}
+
+void gui_show_info_modal(const char *infoStr)
+{
+    gchar *dialogStr = g_strdup(infoStr);
+    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(get_main_window()),
+                                    GTK_DIALOG_MODAL,
+                                    GTK_MESSAGE_INFO,
+                                    GTK_BUTTONS_CLOSE,
+                                    "%s\n", dialogStr);
+    // Ensure that the dialog box is destroyed when the user responds
+    g_signal_connect_swapped(dialog,
+            "response",
+            G_CALLBACK(gtk_widget_destroy),
+            dialog);
+
+    gtk_dialog_run(GTK_DIALOG (dialog));
+    g_free(dialogStr);
 }

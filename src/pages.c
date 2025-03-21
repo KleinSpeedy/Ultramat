@@ -227,20 +227,24 @@ void populateStackPage_Two(GtkStack *mainStack)
 {
     GtkBox *pageTwoBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     CHECK_WIDGET(pageTwoBox, "Page two box");
+
     /* let box fill parent container */
-    gtk_widget_set_size_request(GTK_WIDGET(pageTwoBox), 1280, 700);
-    
+    gtk_widget_set_vexpand(GTK_WIDGET(pageTwoBox), TRUE);
+    gtk_widget_set_hexpand(GTK_WIDGET(pageTwoBox), TRUE);
+
     gtk_widget_set_name(GTK_WIDGET(pageTwoBox), "Box_P_2"); // for debugging or design
 
     /* create separator for visual "appeal", align it in center */
 
     GtkSeparator *halfSeparator = GTK_SEPARATOR(gtk_separator_new(GTK_ORIENTATION_VERTICAL));
     CHECK_WIDGET(halfSeparator, "Separator Page 2");
-    
+
     /* set separator width and let it fill parent box vertically */
-    gtk_widget_set_size_request(GTK_WIDGET(halfSeparator), 20, 0);
+    gtk_widget_set_size_request(GTK_WIDGET(halfSeparator), 10, 0);
     gtk_widget_compute_expand(GTK_WIDGET(halfSeparator), GTK_ORIENTATION_VERTICAL);
     gtk_widget_set_halign(GTK_WIDGET(halfSeparator), GTK_ALIGN_CENTER);
+    gtk_widget_set_margin_start(GTK_WIDGET(halfSeparator), 50);
+    gtk_widget_set_margin_end(GTK_WIDGET(halfSeparator), 50);
 
     /* Use left side of page 2 for ordering a drink, pack them in Box */
 
@@ -258,17 +262,35 @@ void populateStackPage_Two(GtkStack *mainStack)
     gtk_combo_box_set_entry_text_column(comboOrder, REC_COLUMN_NAME);
 
     /* pack order widgets into page box and align properly */
-    gtk_widget_set_size_request(GTK_WIDGET(comboOrder), 300, 70);
+    gtk_widget_set_size_request(GTK_WIDGET(comboOrder), 400, 70);
     gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderHeaderlabel), TRUE, FALSE, 0);
     gtk_box_pack_start(boxComboOrder, GTK_WIDGET(comboOrder), FALSE, FALSE, 0);
     gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderStartButton), FALSE, FALSE, 0);
 
     gtk_widget_set_valign(GTK_WIDGET(boxComboOrder), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(boxComboOrder), GTK_ALIGN_START);
+    // push 140 pixels from left window border
+    gtk_widget_set_margin_start(GTK_WIDGET(boxComboOrder), 140);
+    gtk_widget_set_margin_end(GTK_WIDGET(boxComboOrder), 0);
 
     /* get entry of combo box to set properties */
     GtkEntry *entryComboOrder = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboOrder)));
     gtk_entry_set_text(entryComboOrder, "Drink auswählen!");
     gtk_editable_set_editable(GTK_EDITABLE(entryComboOrder), FALSE);
+
+    /* activate order button once serial communication is established */
+    gtk_widget_set_sensitive(GTK_WIDGET(orderStartButton), FALSE);
+
+    /* Connect order-recipe combo box with callback */
+    gulong id = g_signal_connect(comboOrder, "changed",
+            G_CALLBACK(cb_on_combo_order_changed), NULL);
+    cb_set_combo_order_callback_id(id);
+    cb_set_combo_order_widget(comboOrder);
+
+    id = g_signal_connect(orderStartButton, "toggled",
+            G_CALLBACK(cb_on_recipe_order_toggle), NULL);
+    cb_set_button_order_callback_id(id);
+    cb_set_button_order_widget(orderStartButton);
 
     /* after mixing started show status in status-bar */
 
@@ -279,25 +301,24 @@ void populateStackPage_Two(GtkStack *mainStack)
     CHECK_WIDGET(progressbar, "Progressbar");
     CHECK_WIDGET(progressbarLabel, "Progressbar label");
 
-    /* Connect order-recipe combo box with callback */
-    gulong id = g_signal_connect(comboOrder, "changed",
-            G_CALLBACK(cb_on_combo_order_changed), NULL);
-    cb_set_combo_order_callback_id(id);
+    gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), TRUE, FALSE, 0);
+    gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbar), TRUE, FALSE, 0);
 
-    id = g_signal_connect(orderStartButton, "toggled",
-            G_CALLBACK(cb_on_recipe_order_toggle), NULL);
-    cb_set_button_order_callback_id(id);
-
-    /* pack progressbar and label into own box and align properly */
-    gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), FALSE, FALSE, 0);
-    gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbar), FALSE, FALSE, 0);
-    gtk_widget_set_size_request(GTK_WIDGET(progressbar),300, 50);
-    gtk_widget_set_name(GTK_WIDGET(progressbarLabel), "Progressbar_Label");
-
+    /* set progressbar height and let it fill parent box horizontally */
+    gtk_widget_set_size_request(GTK_WIDGET(progressbar), 400, 0);
+    gtk_widget_compute_expand(GTK_WIDGET(progressbar), GTK_ORIENTATION_HORIZONTAL);
     gtk_widget_set_valign(GTK_WIDGET(progressbar), GTK_ALIGN_CENTER);
+
+    gtk_widget_set_name(GTK_WIDGET(progressbarLabel), "Progressbar_Label");
 
     // align progress bar box
     gtk_widget_set_valign(GTK_WIDGET(progressbarBox), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(progressbarBox), GTK_ALIGN_END);
+    // push 140 pixels from right window border
+    gtk_widget_set_margin_start(GTK_WIDGET(progressbarBox), 0);
+    gtk_widget_set_margin_end(GTK_WIDGET(progressbarBox), 140);
+
+    cb_set_progress_bar_widget(progressbar);
 
     /* pack everything into page box */
 
@@ -306,7 +327,7 @@ void populateStackPage_Two(GtkStack *mainStack)
     gtk_box_pack_start(pageTwoBox, GTK_WIDGET(progressbarBox), TRUE, FALSE, 0); 
 
     /* make sure page two box is centered (slightly unnecessary -> size request ?) */
-    gtk_widget_set_halign(GTK_WIDGET(pageTwoBox), GTK_ALIGN_CENTER);
+    //gtk_widget_set_halign(GTK_WIDGET(pageTwoBox), GTK_ALIGN_CENTER);
 
     gtk_stack_add_titled(mainStack, GTK_WIDGET(pageTwoBox), "Page_Two", "Bestellung");
 }
@@ -315,10 +336,11 @@ void populateStackPage_Three(GtkStack *mainStack)
 {
     GtkBox *pageThreeBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     CHECK_WIDGET(pageThreeBox, "Page 3 Box");
-    
+
     /* let box fill parent container */
-    gtk_widget_set_size_request(GTK_WIDGET(pageThreeBox), 1280, 700);
-    
+    gtk_widget_set_vexpand(GTK_WIDGET(pageThreeBox), TRUE);
+    gtk_widget_set_hexpand(GTK_WIDGET(pageThreeBox), TRUE);
+
     GtkBox *manualPosBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 25));
     CHECK_WIDGET(manualPosBox, "Manual buttons grid");
 
@@ -349,4 +371,10 @@ void populateStackPage_Three(GtkStack *mainStack)
 void populateStackPage_Four(GtkStack *mainStack)
 {
     (void) mainStack;
+    GtkBox *pageThreeBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+    CHECK_WIDGET(pageThreeBox, "Page 4 Box");
+
+    /* let box fill parent container */
+    gtk_widget_set_vexpand(GTK_WIDGET(pageThreeBox), TRUE);
+    gtk_widget_set_hexpand(GTK_WIDGET(pageThreeBox), TRUE);
 }
