@@ -13,17 +13,21 @@
 static const Ingredient *activeIngredients_[PAGES_COMBO_POS_NUM];
 
 // The recipe selected by the order recipe combo box
-static Recipe *activeRecipe_;
+static Recipe *activeRecipe_ = NULL;
+static uint16_t recipeStepDoneCounter_ = 0;
 
 // Callback IDs for ingredient combo boxes and recipe combo box
 static gulong comboCbIds_[PAGES_COMBO_POS_NUM];
-static gulong comboOrderCbId_;
+static gulong recipeComboId_;
+
 // callback IDs for recipe order toggle button and motor switch
 static gulong buttonOrderCbId_;
 static gulong switchMotorCbId_;
-// indicates whether connection to arduino is currently active
-// TODO: Should this be here??
-static gboolean commConnectionActive_ = FALSE;
+
+static GtkComboBox *recipeComboBox_ = NULL;
+static GtkToggleButton *recipeOrderButton_ = NULL;
+static GtkSwitch *motorSwitch_ = NULL;
+static GtkProgressBar *progressBar_ = NULL;
 
 #define ALREADY_SELECTED_ERROR "Zutat bereits ausgewählt!"
 
@@ -54,18 +58,19 @@ static void cb_set_switch_state(GtkSwitch *motorSwitch, gboolean state)
     g_signal_handler_unblock(motorSwitch, switchMotorCbId_);
 }
 
-static inline void cb_set_ing_pos(const Ingredient *ing, int pos)
+static void cb_set_ing_pos(const Ingredient *ing, const int pos)
 {
-    assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM);
+    assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM && ing != NULL);
     activeIngredients_[pos] = ing;
 }
 
-static inline const Ingredient *cb_get_ing_pos(int pos)
+static const Ingredient *cb_get_ing_pos(int pos)
 {
     assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM);
     return activeIngredients_[pos];
 }
 
+// TODO: Keep return values consistent across project
 static int cb_ingredient_already_exists(const Ingredient *ing)
 {
     if(ing == NULL)
@@ -139,7 +144,14 @@ void cb_set_combo_order_callback_id(uint64_t id)
 {
     /* ID always greater 0 for successfull connections */
     assert(id > 0);
-    comboOrderCbId_ = id;
+    recipeComboId_ = id;
+}
+
+void cb_set_combo_order_widget(GtkComboBox *widget)
+{
+    assert(widget != NULL);
+    recipeComboBox_ = widget;
+    g_object_add_weak_pointer(G_OBJECT(widget), (gpointer *)&recipeComboBox_);
 }
 
 void cb_on_combo_order_changed(GtkComboBox *comboBox, void *data)
@@ -165,14 +177,25 @@ void cb_set_button_order_callback_id(uint64_t id)
     buttonOrderCbId_ = id;
 }
 
+void cb_set_button_order_widget(GtkToggleButton *widget)
+{
+    assert(widget != NULL);
+    recipeOrderButton_ = widget;
+    g_object_add_weak_pointer(G_OBJECT(widget), (gpointer *)&recipeOrderButton_);
+}
+
 void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
 {
-    // user data not used
     (void) data;
 
     // dont do anything if toggled back to inactive
     if(!gtk_toggle_button_get_active(button))
     {
+        return;
+    }
+    if(!gtk_widget_is_sensitive(GTK_WIDGET(button)))
+    {
+        printf("order button not activated\n");
         return;
     }
 
@@ -182,6 +205,7 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
         gui_show_error_modal("Kein Rezept ausgewählt!");
         return;
     }
+    // TODO: Check if serial connection active
 
     // check if all ingredients of recipe are active
     for(int i = 0; i < activeRecipe_->ingCount; i++)
@@ -196,10 +220,14 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
         }
     }
 
-    // TODO: Start mixing procedure
-    printf("Start mixing\n");
-    const int ret = comms_start_new_mixing(activeRecipe_);
-    printf("Return start mixing: %d\n", ret);
+    // Disable combo box and toggle button:
+    gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), FALSE);
+    if(comms_start_new_mixing(activeRecipe_) < 0)
+    {
+        printf("start mixing failed\n");
+        // TODO: Reset everything here
+    }
 }
 
 void cb_set_motor_switch_callback_id(uint64_t id)
@@ -209,36 +237,98 @@ void cb_set_motor_switch_callback_id(uint64_t id)
     switchMotorCbId_ = id;
 }
 
+void cb_set_motor_switch_widget(GtkSwitch *widget)
+{
+    assert(widget != NULL);
+    motorSwitch_ = widget;
+    g_object_add_weak_pointer(G_OBJECT(widget), (gpointer *)&motorSwitch_);
+}
+
 int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
 {
     (void) data;
 
-    if(state && commConnectionActive_)
-        return TRUE;
-
     if(state)
     {
-        // TODO: Activate connection
+        if(comms_start_serial_connection() < 0)
+        {
+            gui_show_error_modal("Fehler bei Kommunikationsaufbau");
+            cb_set_switch_state(motorSwitch, FALSE);
+            return TRUE;
+        }
         cb_set_switch_state(motorSwitch, TRUE);
     }
     else
     {
-        // TODO: Deactivate connection
+        printf("False entered\n");
+        comms_stop_serial_connection();
+        gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
         cb_set_switch_state(motorSwitch, FALSE);
     }
 
     return TRUE;
 }
 
-ComboPositions_t cb_get_position_by_id(uint16_t id)
+void cb_set_progress_bar_widget(GtkProgressBar *widget)
 {
-    for(ComboPositions_t pos = PAGES_COMBO_POS_ONE;
+    assert(widget != NULL);
+    progressBar_ = widget;
+    g_object_add_weak_pointer(G_OBJECT(widget), (gpointer *)&progressBar_);
+}
+
+ComboPositions_t cb_get_position_by_id(const uint8_t id)
+{
+    for(ComboPositions_t pos = 0;
         pos < PAGES_COMBO_POS_NUM;
-        pos++)
+        ++pos)
     {
+        if(!activeIngredients_[pos])
+            continue;
         if(activeIngredients_[pos]->id == id)
             return pos;
     }
 
     return PAGES_COMBO_POS_INVALID;
+}
+
+/* Callbacks for command done handlers */
+
+void cb_cmd_hello_there_done(void)
+{
+    gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), TRUE);
+}
+
+void cb_cmd_move_done(void)
+{
+    recipeStepDoneCounter_++;
+    const gdouble progressWidth = (1.0f / activeRecipe_->ingCount) * recipeStepDoneCounter_;
+    // make sure we do not pass something above 1.0
+    if(progressWidth >= 1.0f)
+        gtk_progress_bar_set_fraction(progressBar_, 1.0f);
+    else
+        gtk_progress_bar_set_fraction(progressBar_, progressWidth);
+
+    if(recipeStepDoneCounter_ == activeRecipe_->ingCount)
+    {
+        recipeStepDoneCounter_ = 0;
+        gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), TRUE);
+        cb_reset_toggle_button(recipeOrderButton_, buttonOrderCbId_);
+
+        gui_show_info_modal("Drink ist fertig!");
+
+        gtk_progress_bar_set_fraction(progressBar_, 0.0f);
+    }
+}
+
+void cb_error_serial_communication(const char *str)
+{
+    // stop serial connection, disable order button and reset switch
+    comms_stop_serial_connection();
+    gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
+    cb_set_switch_state(motorSwitch_, FALSE);
+
+    char errStr[128] = {0};
+    snprintf(errStr, sizeof(errStr), "Fehler bei Kommunikation: %s", str);
+    gui_show_error_modal(errStr);
 }
