@@ -30,16 +30,19 @@ jobs:
       - name: rename and Move Binaries
         run: |
           sudo chown -R $(whoami):$(whoami) build/ arm-build/
-          mv build/$TARGET_x86_64 $TARGET_x86_64.${{ env.RELEASE_TAG }}
-          mv arm-build/$TARGET_arm64 $TARGET_arm64.${{ env.RELEASE_TAG }}
+          echo "Creating $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}"
+          echo "Creating $TARGET_arm64.${{ github.GITHUB_REF_NAME }}"
+          mv build/$TARGET_x86_64 $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}
+          mv arm-build/$TARGET_arm64 $TARGET_arm64.${{ github.GITHUB_REF_NAME }}
 
       - name: upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: binaries
           path: |
-            $TARGET_x86_64.${{ env.RELEASE_TAG }}
-            $TARGET_arm64.${{ env.RELEASE_TAG }}
+            $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}
+            $TARGET_arm64.${{ github.GITHUB_REF_NAME }}
 
   release:
     needs: build
@@ -54,7 +57,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            $TARGET_x86_64.${{ env.RELEASE_TAG }}
-            $TARGET_arm64.${{ env.RELEASE_TAG }}
+            $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}
+            $TARGET_arm64.${{ github.GITHUB_REF_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
