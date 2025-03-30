@@ -6,8 +6,8 @@ on:
       - "v*.*.*"
 
 env:
-  TARGET_x86_64: Ultramat.x86_64
-  TARGET_arm64: Ultramat.aarch64
+  TARGET_x86_64: "Ultramat.x86_64"
+  TARGET_arm64: "Ultramat.aarch64"
 
 jobs:
   build:
@@ -27,15 +27,15 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/ultramat docker-ultra-build \
           /bin/bash -c "./scripts/release_builder.sh"
 
-      - name: rename and Move Binaries
+      - name: rename and move Binaries
         run: |
           sudo chown -R $(whoami):$(whoami) build/ arm-build/
           echo "Creating $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}"
           echo "Creating $TARGET_arm64.${{ github.GITHUB_REF_NAME }}"
-          mv build/$TARGET_x86_64 $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}
-          mv arm-build/$TARGET_arm64 $TARGET_arm64.${{ github.GITHUB_REF_NAME }}
+          mv build/Ultramat.x86_64 "Ultramat.x86_64.${{ github.GITHUB_REF_NAME }}"
+          mv arm-build/Ultramat.aarch64 "Ultramat.aarch64.${{ github.GITHUB_REF_NAME }}"
 
-      - name: upload Build Artifacts
+      - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
