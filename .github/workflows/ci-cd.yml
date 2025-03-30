@@ -56,7 +56,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            $TARGET_x86_64-${{ env.RELEASE_TAG }}
-            $TARGET_arm64-${{ env.RELEASE_TAG }}
+            Ultramat.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
