@@ -29,6 +29,7 @@ jobs:
 
       - name: rename and Move Binaries
         run: |
+          sudo chown -R $(whoami):$(whoami) build/ arm-build/
           mv build/$TARGET_x86_64 $TARGET_x86_64.${{ env.RELEASE_TAG }}
           mv arm-build/$TARGET_arm64 $TARGET_arm64.${{ env.RELEASE_TAG }}
 
