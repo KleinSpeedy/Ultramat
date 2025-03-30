@@ -19,7 +19,7 @@ jobs:
           submodules: recursive
 
       - name: Get Release Version
-        run: echo "RELEASE_TAG=${{ github.ref }}" >> $GITHUB_ENV
+        run: echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Pull Docker Image from Docker Hub
         run: |
