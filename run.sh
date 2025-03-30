@@ -19,7 +19,7 @@ runTarget()
     if [ $1 = "debug" ]; then
         suffix="_dbg"
     fi
-    ./build/Ultramat$suffix
+    ./build/Ultramat$suffix.$(uname -m)
 }
 
 while getopts ":hrdg" opt; do
