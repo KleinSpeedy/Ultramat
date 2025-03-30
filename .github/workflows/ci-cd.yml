@@ -1,0 +1,59 @@
+name: Ultramat-CI-CD
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  TARGET_x86_64: Ultramat.x86_64
+  TARGET_arm64: Ultramat.arm64
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: build docker image
+        run: | 
+          docker build -t docker-ultra-build .
+
+      - name: build x86_64 and arm64 targets
+        run: | 
+          docker run --rm -v ${{ github.workspace }}:/ultramat docker-ultra-build \
+          /bin/bash -c "./scripts/release_builder.sh"
+
+      - name: rename and Move Binaries
+        run: |
+          mv build/$TARGET_x86_64 $TARGET_x86_64.${{ env.RELEASE_TAG }}
+          mv arm-build/$TARGET_arm64 $TARGET_arm64.${{ env.RELEASE_TAG }}
+
+      - name: upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: |
+            $TARGET_x86_64.${{ env.RELEASE_TAG }}
+            $TARGET_arm64.${{ env.RELEASE_TAG }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            $TARGET_x86_64.${{ env.RELEASE_TAG }}
+            $TARGET_arm64.${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
