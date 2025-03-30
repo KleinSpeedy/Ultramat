@@ -15,6 +15,7 @@ cmake = import('cmake')
 
 c_periphery_opts = cmake.subproject_options()
 c_periphery_opts.add_cmake_defines({'BUILD_TESTS': false})
+c_periphery_opts.set_override_option('c_std', 'gnu99')
 
 c_periphery_proj = cmake.subproject('c-periphery', options: c_periphery_opts)
 c_periphery_dep = c_periphery_proj.dependency('periphery')
@@ -32,28 +33,29 @@ deps = [
   c_periphery_dep
 ]
 
-# Enable debugging and warnings for development builds
-if get_option('buildtype') == 'debug'
-  add_project_arguments('-DGTK_DEBUG=interactive', '-DG_DEBUG=fatal-warnings',
-                        language: 'c')
+suffix = 'x86_64'
+if meson.is_cross_build()
+  suffix = 'aarch64'
 endif
 
 # Release target
-build_target(meson.project_name(),
+executable(meson.project_name(),
   source_files,
   include_directories: include_dirs,
   dependencies: deps,
   override_options: [
     'buildtype=release'
   ],
-target_type: 'executable')
+  name_suffix: suffix
+)
 
 # Debug target
-build_target(meson.project_name() + '_dbg',
+executable(meson.project_name() + '_dbg',
   source_files,
   include_directories: include_dirs,
   dependencies: deps,
   override_options: [
     'buildtype=debug'
   ],
-target_type: 'executable')
+  name_suffix: suffix
+)
