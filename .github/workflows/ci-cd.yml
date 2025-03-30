@@ -18,31 +18,30 @@ jobs:
         with:
           submodules: recursive
 
-      - name: build docker image
-        run: | 
-          docker build -t docker-ultra-build .
+      - name: Get Release Version
+        run: echo "RELEASE_TAG=${{ github.ref }}" >> $GITHUB_ENV
+
+      - name: Pull Docker Image from Docker Hub
+        run: |
+          docker pull kleinspeedy/ultramat-cross-builder:latest
 
       - name: build x86_64 and arm64 targets
         run: | 
-          docker run --rm -v ${{ github.workspace }}:/ultramat docker-ultra-build \
+          docker run --rm -v ${{ github.workspace }}:/ultramat kleinspeedy/ultramat-cross-builder:latest \
           /bin/bash -c "./scripts/release_builder.sh"
 
-      - name: rename and move Binaries
+      - name: rename and move binaries
         run: |
           sudo chown -R $(whoami):$(whoami) build/ arm-build/
-          echo "Creating $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}"
-          echo "Creating $TARGET_arm64.${{ github.GITHUB_REF_NAME }}"
-          mv build/Ultramat.x86_64 "Ultramat.x86_64.${{ github.GITHUB_REF_NAME }}"
-          mv arm-build/Ultramat.aarch64 "Ultramat.aarch64.${{ github.GITHUB_REF_NAME }}"
+          mv build/$TARGET_x86_64 $TARGET_x86_64-${{ env.RELEASE_TAG }}
+          mv arm-build/$TARGET_arm64 $TARGET_arm64-${{ env.RELEASE_TAG }}
 
       - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: binaries
-          path: |
-            $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}
-            $TARGET_arm64.${{ github.GITHUB_REF_NAME }}
+          path: Ultramat.*
 
   release:
     needs: build
@@ -57,7 +56,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            $TARGET_x86_64.${{ github.GITHUB_REF_NAME }}
-            $TARGET_arm64.${{ github.GITHUB_REF_NAME }}
+            $TARGET_x86_64-${{ env.RELEASE_TAG }}
+            $TARGET_arm64-${{ env.RELEASE_TAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
