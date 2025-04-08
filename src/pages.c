@@ -5,6 +5,7 @@
 #include "callbacks_position.h"
 #include "drinklists.h"
 #include "gui.h"
+#include "ultra_version.h"
 
 #include <glib.h>
 
@@ -370,11 +371,23 @@ void populateStackPage_Three(GtkStack *mainStack)
 
 void populateStackPage_Four(GtkStack *mainStack)
 {
-    (void) mainStack;
-    GtkBox *pageThreeBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
-    CHECK_WIDGET(pageThreeBox, "Page 4 Box");
+    GtkBox *pageFourBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+    CHECK_WIDGET(pageFourBox, "Page 4 Box");
 
     /* let box fill parent container */
-    gtk_widget_set_vexpand(GTK_WIDGET(pageThreeBox), TRUE);
-    gtk_widget_set_hexpand(GTK_WIDGET(pageThreeBox), TRUE);
+    gtk_widget_set_vexpand(GTK_WIDGET(pageFourBox), TRUE);
+    gtk_widget_set_hexpand(GTK_WIDGET(pageFourBox), TRUE);
+
+    GtkBox *appVersionBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 25));
+    gtk_widget_set_halign(GTK_WIDGET(appVersionBox), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(appVersionBox), GTK_ALIGN_CENTER);
+
+    GtkLabel *appInfoLabel = GTK_LABEL(gtk_label_new("App version:"));
+    GtkLabel *version = GTK_LABEL(gtk_label_new(ULTRA_VERSION));
+    gtk_box_pack_start(appVersionBox, GTK_WIDGET(appInfoLabel), FALSE, FALSE, 0);
+    gtk_box_pack_start(appVersionBox, GTK_WIDGET(version), FALSE, FALSE, 0);
+
+    gtk_box_pack_start(pageFourBox, GTK_WIDGET(appVersionBox), FALSE, FALSE, 50);
+
+    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageFourBox), "Page_Four", "Info");
 }
