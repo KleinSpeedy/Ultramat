@@ -1,0 +1,9 @@
+#ifndef ULTRA_VERSION_H
+#define ULTRA_VERSION_H
+
+#define ULTRA_VERSION           "@version_str@"
+#define ULTRA_VERSION_MAJOR     @version_major@
+#define ULTRA_VERSION_MINOR     @version_minor@
+#define ULTRA_VERSION_BUGFIX    @version_bugfix@
+
+#endif // ULTRA_VERSION_H
