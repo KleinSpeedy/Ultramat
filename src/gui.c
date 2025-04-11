@@ -98,7 +98,7 @@ create_main_window_stack(void)
     GtkStack *stack  = GTK_STACK(gtk_stack_new());
     CHECK_WIDGET(stack, "Main Stack");
 
-    gtk_stack_set_transition_type(stack, GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
+    gtk_stack_set_transition_type(stack, GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
     gtk_stack_set_transition_duration(stack, TRANSITION_SPEED);
 
     return stack;

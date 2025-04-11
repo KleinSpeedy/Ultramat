@@ -1,5 +1,6 @@
 /* This file populates the different stack pages. */
 
+#include "callbacks_info.h"
 #include "checks.h"
 #include "pages.h"
 #include "callbacks_position.h"
@@ -7,6 +8,7 @@
 #include "gui.h"
 #include "ultra_version.h"
 
+#include <gtk/gtk.h>
 #include <glib.h>
 
 /* "private" function declaration */
@@ -378,16 +380,46 @@ void populateStackPage_Four(GtkStack *mainStack)
     gtk_widget_set_vexpand(GTK_WIDGET(pageFourBox), TRUE);
     gtk_widget_set_hexpand(GTK_WIDGET(pageFourBox), TRUE);
 
-    GtkBox *appVersionBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 25));
-    gtk_widget_set_halign(GTK_WIDGET(appVersionBox), GTK_ALIGN_CENTER);
-    gtk_widget_set_valign(GTK_WIDGET(appVersionBox), GTK_ALIGN_CENTER);
+    GtkGrid *versionGrid = GTK_GRID(gtk_grid_new());
+    gtk_grid_set_row_spacing(versionGrid, 25);
+    gtk_grid_set_column_spacing(versionGrid, 25);
+    gtk_widget_set_halign(GTK_WIDGET(versionGrid), GTK_ALIGN_CENTER);
 
+    /* App version informations */
     GtkLabel *appInfoLabel = GTK_LABEL(gtk_label_new("App version:"));
-    GtkLabel *version = GTK_LABEL(gtk_label_new(ULTRA_VERSION));
-    gtk_box_pack_start(appVersionBox, GTK_WIDGET(appInfoLabel), FALSE, FALSE, 0);
-    gtk_box_pack_start(appVersionBox, GTK_WIDGET(version), FALSE, FALSE, 0);
+    GtkLabel *appVersion = GTK_LABEL(gtk_label_new(ULTRA_VERSION));
+    GtkButton *appUpdateButton = GTK_BUTTON(gtk_button_new_with_label("Check Update"));
+    gtk_widget_set_size_request(GTK_WIDGET(appUpdateButton), 60, 100);
+    g_signal_connect(appUpdateButton, "clicked",
+                     G_CALLBACK(cb_info_app_update_button_clicked), NULL);
 
-    gtk_box_pack_start(pageFourBox, GTK_WIDGET(appVersionBox), FALSE, FALSE, 50);
+    gtk_grid_attach(versionGrid, GTK_WIDGET(appInfoLabel), 0, 0, 1, 1);
+    gtk_grid_attach_next_to(versionGrid, GTK_WIDGET(appVersion),
+                            GTK_WIDGET(appInfoLabel), GTK_POS_RIGHT, 1, 1);
+    gtk_grid_attach_next_to(versionGrid, GTK_WIDGET(appUpdateButton),
+                            GTK_WIDGET(appVersion), GTK_POS_RIGHT, 1, 1);
+
+    /* Microcontroller version informations */
+    GtkLabel *mcInfoLabel = GTK_LABEL(gtk_label_new("Microcontroller version:"));
+    GtkLabel *mcVersion = GTK_LABEL(gtk_label_new("Nicht ausgelesen"));
+    GtkButton *mcUpdateButton = GTK_BUTTON(gtk_button_new_with_label("Check Update"));
+    gtk_widget_set_size_request(GTK_WIDGET(mcUpdateButton), 60, 100);
+
+    cb_info_set_mc_version_label(mcVersion);
+    g_signal_connect(mcUpdateButton, "clicked",
+                     G_CALLBACK(cb_info_mc_update_button_clicked), NULL);
+
+    gtk_grid_attach(versionGrid, GTK_WIDGET(mcInfoLabel), 0, 1, 1, 1);
+    gtk_grid_attach_next_to(versionGrid, GTK_WIDGET(mcVersion),
+                            GTK_WIDGET(mcInfoLabel), GTK_POS_RIGHT, 1, 1);
+    gtk_grid_attach_next_to(versionGrid, GTK_WIDGET(mcUpdateButton),
+                            GTK_WIDGET(mcVersion), GTK_POS_RIGHT, 1, 1);
+
+    gtk_label_set_xalign(GTK_LABEL(appInfoLabel), 1.0); // right-align
+    gtk_label_set_xalign(GTK_LABEL(mcInfoLabel), 1.0); // right-align
+
+    /* attach version grid to box */
+    gtk_box_pack_start(pageFourBox, GTK_WIDGET(versionGrid), FALSE, FALSE, 25);
 
     gtk_stack_add_titled(mainStack, GTK_WIDGET(pageFourBox), "Page_Four", "Info");
 }
