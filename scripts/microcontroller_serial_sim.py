@@ -128,8 +128,12 @@ class MessageHandler:
             cmd = message[2]  # Extract command byte
             self.send_ack(id)  # send ack immediatly
             match cmd:
-                case Command.HELLO_THERE | Command.HOMING_X | Command.HOMING_Y:
+                case Command.HELLO_THERE:
                     # TODO: ack, wait 10s and send done
+                    data = [id, 0, 8, 11]
+                    threading.Timer(10, self.send_delayed_done, [data]).start()
+                    pass
+                case Command.HOMING_X | Command.HOMING_Y:
                     threading.Timer(10, self.send_delayed_done, [id]).start()
                     pass
                 case Command.STOP:
@@ -151,8 +155,10 @@ class MessageHandler:
         self.responseId += 1
         self.outQueue.put(msg)
 
-    def send_delayed_done(self, id):
-        msg = [0x10, self.responseId, Command.DONE, 0x01, id]
+    def send_delayed_done(self, payload):
+        msg = [0x10, self.responseId, Command.DONE]
+        msg.append(len(payload))
+        msg.extend(payload)
         (high, low) = self.calc_checksum(msg)
         msg.append(high)
         msg.append(low)
