@@ -6,6 +6,7 @@ subdir('util')
 
 source_files=[
   files('callbacks_position.c'),
+  files('callbacks_info.c'),
   files('command_handler.c'),
   files('drinklists.c'),
   files('drinks.c'),
