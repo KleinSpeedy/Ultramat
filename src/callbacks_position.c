@@ -1,10 +1,10 @@
 #include "callbacks_position.h"
+#include "callbacks_info.h"
 #include "drinks.h"
 #include "drinklists.h"
 #include "gui.h"
 #include "serialcomms.h"
 
-#include <glibconfig.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -260,7 +260,6 @@ int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
     }
     else
     {
-        printf("False entered\n");
         comms_stop_serial_connection();
         gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
         cb_set_switch_state(motorSwitch, FALSE);
@@ -293,9 +292,23 @@ ComboPositions_t cb_get_position_by_id(const uint8_t id)
 
 /* Callbacks for command done handlers */
 
-void cb_cmd_hello_there_done(void)
+void cb_cmd_hello_there_done(const uint8_t *payload, const uint8_t size)
 {
+    // activate recipe order
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), TRUE);
+
+    // setting default version v0.0.1 in case payload is missing
+    struct SemanticVersion vers = {0, 0, 1};
+    if(size < 4)
+    {
+        gui_show_error_modal("Could not read real microcontroller version!");
+        cb_info_set_mc_version(vers);
+        return;
+    }
+    vers.major = payload[1];
+    vers.minor = payload[2];
+    vers.bugfix = payload[3];
+    cb_info_set_mc_version(vers);
 }
 
 void cb_cmd_move_done(void)

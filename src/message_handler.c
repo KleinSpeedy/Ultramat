@@ -166,9 +166,10 @@ static eWorkerState handler_process_incoming(const cmd_msg_t *msg)
 
             if(pendingDoneId == incomingDoneId)
             {
-                // Execute corresponding command handler
-                // TODO: Check for error??
-                command_handler_execute_done(pendingDoneId);
+                // Execute corresponding command handler with payload and size
+                command_handler_execute_done(pendingDoneId,
+                        msg->cmdBuffer.data,
+                        msg->cmdBuffer.size);
                 // advance ring buffer, throw away result
                 ring_buffer_pop(&worker_.pendingDones, &pendingDoneId);
 

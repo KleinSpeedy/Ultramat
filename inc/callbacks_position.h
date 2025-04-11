@@ -73,7 +73,7 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data);
 /* ========== Callbacks for command done handlers ========== */
 
 // Setup command finished successfully, activate recipe ordering
-void cb_cmd_hello_there_done(void);
+void cb_cmd_hello_there_done(const uint8_t *payload, const uint8_t size);
 
 // Recipe step move finished
 void cb_cmd_move_done(void);

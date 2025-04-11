@@ -10,7 +10,7 @@
 
 #define COMMANDS_MAX_PENDING    QUEUE_MAX_SIZE
 
-typedef int (*handler_func)(void);
+typedef int (*handler_func)(const uint8_t *, const uint8_t);
 
 typedef struct cmd_func_pair
 {
@@ -26,12 +26,33 @@ typedef struct id_handler_pair
 
 /* BEGIN command done handler function declaration */
 
-static int hello_there_handler(void);
-static int homing_x_handler(void) {return 0;}
-static int homing_y_handler(void) {return 0;}
-static int move_handler(void);
-static int move_x_handler(void) {return 0;}
-static int move_y_handler(void) {return 0;}
+static int hello_there_handler(const uint8_t *arg, const uint8_t size);
+static int move_handler(const uint8_t *arg, const uint8_t size);
+
+static int homing_x_handler(const uint8_t *arg, const uint8_t size)
+{
+    (void) arg;
+    (void) size;
+    return 0;
+}
+static int homing_y_handler(const uint8_t *arg, const uint8_t size)
+{
+    (void) arg;
+    (void) size;
+    return 0;
+}
+static int move_x_handler(const uint8_t *arg, const uint8_t size)
+{
+    (void) arg;
+    (void) size;
+    return 0;
+}
+static int move_y_handler(const uint8_t *arg, const uint8_t size)
+{
+    (void) arg;
+    (void) size;
+    return 0;
+}
 
 /* END command handler function declaration */
 
@@ -61,7 +82,8 @@ static handler_func get_handler_func(const eCommand cmd)
     return NULL;
 }
 
-static int execute_cmd_handler(const uint8_t id)
+static int execute_cmd_handler(const uint8_t id, const uint8_t *payload,
+                               const uint8_t size)
 {
     for(uint8_t i = 0; i < COMMANDS_MAX_PENDING; ++i)
     {
@@ -69,21 +91,27 @@ static int execute_cmd_handler(const uint8_t id)
         {
             // always return 0 even if no handler defined
             return pendingCmds_[i].func != NULL ?
-                pendingCmds_[i].func() : 0;
+                pendingCmds_[i].func(payload, size) : 0;
         }
     }
     // no handler found
     return -1;
 }
 
-static int hello_there_handler(void)
+static int hello_there_handler(const uint8_t *arg, const uint8_t size)
 {
-    cb_cmd_hello_there_done();
+    // id + 3 bytes for major, minor, bugfix
+    if(size < 4)
+        return -1;
+
+    cb_cmd_hello_there_done(arg, size);
     return 0;
 }
 
-static int move_handler(void)
+static int move_handler(const uint8_t *arg, const uint8_t size)
 {
+    (void) arg;
+    (void) size;
     cb_cmd_move_done();
     return 0;
 }
@@ -105,11 +133,13 @@ int command_handler_add(const uint8_t id, const eCommand cmd)
 
     pendingCmds_[handlerIndex_].id = id;
     pendingCmds_[handlerIndex_].func = handler;
-    handlerIndex_++;
+    // just wrap around
+    handlerIndex_ = (handlerIndex_ + 1) % COMMANDS_MAX_PENDING;
     return 0;
 }
 
-int command_handler_execute_done(const uint8_t id)
+int command_handler_execute_done(const uint8_t id, const uint8_t *payload,
+                                 const uint8_t size)
 {
-    return execute_cmd_handler(id);
+    return execute_cmd_handler(id, payload, size);
 }
