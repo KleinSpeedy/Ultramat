@@ -32,6 +32,7 @@ typedef enum eMsgDecodingState
 // serial handle
 static serial_t *ser_ = NULL;
 #define FREE_SERIAL_HANDLE(x)   serial_free(x); x = NULL
+
 // TODO: Set this differently
 #define SERIAL_PORT     "/tmp/ttyBase"
 
@@ -128,9 +129,9 @@ int comms_send_msg(const cmd_msg_t *msg)
     if(!ser_)
         return -1;
 
-    // number of bytes without checksum
-    const uint8_t len = 4 + msg->cmdBuffer.size;
-    if((len + 2) > COMMS_MAX_BUFFER_SIZE)
+    // check that message with payload fits into tx buffer
+    const uint8_t len = COMMS_MIN_MSG_SIZE_NO_PAYLOAD + msg->cmdBuffer.size;
+    if(len > COMMS_MAX_BUFFER_SIZE)
         return -1;
 
     uint8_t buffer[COMMS_MAX_BUFFER_SIZE] = {0};
@@ -140,8 +141,10 @@ int comms_send_msg(const cmd_msg_t *msg)
     buffer[FRAME_POS_CMD] = msg->cmdBuffer.cmd;
     buffer[FRAME_POS_DATA_LENGTH] = msg->cmdBuffer.size;
     memcpy(&buffer[FRAME_POS_DATA], msg->cmdBuffer.data, msg->cmdBuffer.size);
-    buffer[len] = (msg->checksum >> 8) & 0xFF;
-    buffer[len+1] = msg->checksum & 0xFF;
+
+    // add checksum
+    buffer[FRAME_POS_DATA + msg->cmdBuffer.size] = (msg->checksum >> 8) & 0xFF;
+    buffer[FRAME_POS_DATA + msg->cmdBuffer.size + 1] = msg->checksum & 0xFF;
 
     int numBytes = 0;
     if((numBytes = serial_write(ser_, buffer, len + 2)) < 0)
@@ -222,18 +225,16 @@ static int comms_read_message(cmd_msg_t *temp)
 static int comms_decode_message(const uint8_t *buffer, const uint8_t numBytes,
                                 cmd_msg_t *temp)
 {
-    // TODO: 5 magic value, is it correct though?
-    if(numBytes < 5 || buffer[FRAME_POS_START] != FRAME_VAL_START)
+    if(numBytes < COMMS_MIN_MSG_SIZE || buffer[FRAME_POS_START] != FRAME_VAL_START)
     {
         return -1;  // Invalid frame
     }
 
     const uint8_t id = buffer[FRAME_POS_ID];
-    const uint8_t cmd = (eCommand)buffer[FRAME_POS_CMD];
+    const uint8_t cmd = buffer[FRAME_POS_CMD];
     const uint8_t dataLength = buffer[FRAME_POS_DATA_LENGTH];
 
-    // TODO: Why 5???
-    if(numBytes < (5 + dataLength))
+    if(numBytes < (COMMS_MIN_MSG_SIZE_NO_PAYLOAD + dataLength))
     {
         return -2; // Incomplete frame
     }
