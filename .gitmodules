@@ -1,6 +1,6 @@
-[submodule "subprojects/c-periphery"]
-	path = subprojects/c-periphery
-	url = https://github.com/KleinSpeedy/c-periphery.git
 [submodule "subprojects/nanopb"]
 	path = subprojects/nanopb
 	url = https://github.com/KleinSpeedy/nanopb.git
+[submodule "subprojects/c-periphery"]
+	path = subprojects/c-periphery
+	url = https://github.com/KleinSpeedy/c-periphery.git
