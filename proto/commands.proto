@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+enum CmdType {
+  CMD_UNDEFINED = 0;
+  HELLO_THERE = 1;
+  STOP = 2;
+  RECIPE_STEP = 3;
+  MOVE_X = 4;
+  MOVE_Y = 5;
+}
+
+enum ResponseType {
+  RSP_UNDEFINED = 0;
+  DONE = 1;
+  ERROR = 2;
+  EMERGENCY_STOP = 3;
+}
+
+enum PositionX {
+  INVALID = 0;
+  ONE = 1;
+  TWO = 2;
+  THREE = 3;
+  FOUR = 4;
+  FIVE = 5;
+  SIX = 6;
+  SEVEN = 7;
+  FINAL = 8;
+};
+
+// microcontroller version
+message McVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+  uint32 bugfix = 3;
+}
+
+message RecipeStep {
+  PositionX xPos = 1;
+  uint32 yCount = 2;
+}
+
+message Message {
+  uint32 id = 1;
+  CmdType type = 2;
+
+  oneof payload {
+    RecipeStep step = 3;
+    PositionX xPos = 4;
+    uint32 yCount = 5;
+    bool stopDefault = 6;   // take default pos after stopping
+  }
+}
+
+message Response {
+  uint32 id = 1;
+  ResponseType type = 2;
+
+  optional McVersion version = 3;
+  optional uint32 error = 4;
+}

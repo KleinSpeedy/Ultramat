@@ -1,15 +1,17 @@
 /* This file populates the different stack pages. */
 
-#include "callbacks_info.h"
-#include "checks.h"
 #include "pages.h"
+#include "callbacks_info.h"
 #include "callbacks_position.h"
+#include "checks.h"
 #include "drinklists.h"
+#include "glib-object.h"
 #include "gui.h"
+#include "proto/commands.pb.h"
 #include "ultra_version.h"
 
-#include <gtk/gtk.h>
 #include <glib.h>
+#include <gtk/gtk.h>
 
 /* "private" function declaration */
 
@@ -30,9 +32,9 @@ void createStackPages(GtkStack *mainStack)
 
 /**
  * @brief Page one contains the positions with the selected ingredients
- * 
- * @param mainStack 
- * @param ingListStore 
+ *
+ * @param mainStack
+ * @param ingListStore
  * @param ingArray
  */
 void populateStackPage_One(GtkStack *mainStack)
@@ -44,7 +46,8 @@ void populateStackPage_One(GtkStack *mainStack)
     gtk_widget_set_vexpand(GTK_WIDGET(pageOneBox), TRUE);
     gtk_widget_set_hexpand(GTK_WIDGET(pageOneBox), TRUE);
 
-    gtk_widget_set_name(GTK_WIDGET(pageOneBox), "Box_P_1"); // for debugging or design
+    gtk_widget_set_name(GTK_WIDGET(pageOneBox),
+                        "Box_P_1"); // for debugging or design
 
     GtkGrid *selectionGrid = GTK_GRID(gtk_grid_new());
     CHECK_WIDGET(selectionGrid, "Drink Grid");
@@ -59,7 +62,8 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkBox *boxPos1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkImage *imagePos1 = GTK_IMAGE(gtk_image_new());
     GtkLabel *labelPos1 = GTK_LABEL(gtk_label_new("Position 1"));
-    GtkComboBox *comboPos1 = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
+    GtkComboBox *comboPos1 =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
     CHECK_WIDGET(boxPos1, "Pos 1");
     CHECK_WIDGET(labelPos1, "Label Pos 1");
     CHECK_WIDGET(imagePos1, "Image Pos 1");
@@ -68,7 +72,8 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkBox *boxPos2 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkLabel *labelPos2 = GTK_LABEL(gtk_label_new("Position 2"));
     GtkImage *imagePos2 = GTK_IMAGE(gtk_image_new());
-    GtkComboBox *comboPos2 = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
+    GtkComboBox *comboPos2 =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
     CHECK_WIDGET(boxPos2, "Pos 2");
     CHECK_WIDGET(labelPos2, "Label Pos 2");
     CHECK_WIDGET(imagePos2, "Image Pos 2");
@@ -77,7 +82,8 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkBox *boxPos3 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkLabel *labelPos3 = GTK_LABEL(gtk_label_new("Position 3"));
     GtkImage *imagePos3 = GTK_IMAGE(gtk_image_new());
-    GtkComboBox *comboPos3 = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
+    GtkComboBox *comboPos3 =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
     CHECK_WIDGET(boxPos3, "Pos 3");
     CHECK_WIDGET(labelPos3, "Label Pos 3");
     CHECK_WIDGET(imagePos3, "Image Pos 3");
@@ -86,7 +92,8 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkBox *boxPos4 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkLabel *labelPos4 = GTK_LABEL(gtk_label_new("Position 4"));
     GtkImage *imagePos4 = GTK_IMAGE(gtk_image_new());
-    GtkComboBox *comboPos4 = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
+    GtkComboBox *comboPos4 =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
     CHECK_WIDGET(boxPos4, "Pos 4");
     CHECK_WIDGET(labelPos4, "Label Pos 4");
     CHECK_WIDGET(imagePos4, "Image Pos 4");
@@ -95,7 +102,8 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkBox *boxPos5 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkLabel *labelPos5 = GTK_LABEL(gtk_label_new("Position 5"));
     GtkImage *imagePos5 = GTK_IMAGE(gtk_image_new());
-    GtkComboBox *comboPos5 = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
+    GtkComboBox *comboPos5 =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
     CHECK_WIDGET(boxPos5, "Pos 5");
     CHECK_WIDGET(labelPos5, "Label Pos 5");
     CHECK_WIDGET(imagePos5, "Image Pos 5");
@@ -104,13 +112,15 @@ void populateStackPage_One(GtkStack *mainStack)
     GtkBox *boxPos6 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkLabel *labelPos6 = GTK_LABEL(gtk_label_new("Position 6"));
     GtkImage *imagePos6 = GTK_IMAGE(gtk_image_new());
-    GtkComboBox *comboPos6 = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
+    GtkComboBox *comboPos6 =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(ingListModel));
     CHECK_WIDGET(boxPos6, "Pos 6");
     CHECK_WIDGET(labelPos6, "Label Pos 6");
     CHECK_WIDGET(imagePos6, "Image Pos 6");
     CHECK_WIDGET(comboPos6, "Combo Pos 6");
 
-    // extract entries from combo boxes, display default text and disable editable
+    // extract entries from combo boxes, display default text and disable
+    // editable
 
     GtkEntry *entryPos1 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos1)));
     GtkEntry *entryPos2 = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboPos2)));
@@ -134,36 +144,36 @@ void populateStackPage_One(GtkStack *mainStack)
     gtk_editable_set_editable(GTK_EDITABLE(entryPos6), FALSE);
 
     // connect callback handler IDs
-    // TODO: All positions +1 when pressure pumps are added
+    // TODO: Pos one is reserved for pressure pumps
     gulong id = g_signal_connect(comboPos1, "changed",
-            G_CALLBACK(cb_on_combo_position_changed),
-            GINT_TO_POINTER(PAGES_COMBO_POS_ONE));
-    cb_set_combo_position_callback_id(PAGES_COMBO_POS_ONE, id);
-
-    id = g_signal_connect(comboPos2, "changed",
-            G_CALLBACK(cb_on_combo_position_changed),
-            GINT_TO_POINTER(PAGES_COMBO_POS_TWO));
+                                 G_CALLBACK(cb_on_combo_position_changed),
+                                 GINT_TO_POINTER(PAGES_COMBO_POS_TWO));
     cb_set_combo_position_callback_id(PAGES_COMBO_POS_TWO, id);
 
-    id = g_signal_connect(comboPos3, "changed",
-            G_CALLBACK(cb_on_combo_position_changed),
-            GINT_TO_POINTER(PAGES_COMBO_POS_THREE));
+    id = g_signal_connect(comboPos2, "changed",
+                          G_CALLBACK(cb_on_combo_position_changed),
+                          GINT_TO_POINTER(PAGES_COMBO_POS_THREE));
     cb_set_combo_position_callback_id(PAGES_COMBO_POS_THREE, id);
 
-    id = g_signal_connect(comboPos4, "changed",
-            G_CALLBACK(cb_on_combo_position_changed),
-            GINT_TO_POINTER(PAGES_COMBO_POS_FOUR));
+    id = g_signal_connect(comboPos3, "changed",
+                          G_CALLBACK(cb_on_combo_position_changed),
+                          GINT_TO_POINTER(PAGES_COMBO_POS_FOUR));
     cb_set_combo_position_callback_id(PAGES_COMBO_POS_FOUR, id);
 
-    id = g_signal_connect(comboPos5, "changed",
-            G_CALLBACK(cb_on_combo_position_changed),
-            GINT_TO_POINTER(PAGES_COMBO_POS_FIVE));
+    id = g_signal_connect(comboPos4, "changed",
+                          G_CALLBACK(cb_on_combo_position_changed),
+                          GINT_TO_POINTER(PAGES_COMBO_POS_FIVE));
     cb_set_combo_position_callback_id(PAGES_COMBO_POS_FIVE, id);
 
-    id = g_signal_connect(comboPos6, "changed",
-            G_CALLBACK(cb_on_combo_position_changed),
-            GINT_TO_POINTER(PAGES_COMBO_POS_SIX));
+    id = g_signal_connect(comboPos5, "changed",
+                          G_CALLBACK(cb_on_combo_position_changed),
+                          GINT_TO_POINTER(PAGES_COMBO_POS_SIX));
     cb_set_combo_position_callback_id(PAGES_COMBO_POS_SIX, id);
+
+    id = g_signal_connect(comboPos6, "changed",
+                          G_CALLBACK(cb_on_combo_position_changed),
+                          GINT_TO_POINTER(PAGES_COMBO_POS_SEVEN));
+    cb_set_combo_position_callback_id(PAGES_COMBO_POS_SEVEN, id);
 
     // make combo boxes big enough, makes everything else bigger too
     const int comboWidth = 200, comboHeight = 60;
@@ -213,18 +223,21 @@ void populateStackPage_One(GtkStack *mainStack)
     gtk_box_pack_start(boxPos6, GTK_WIDGET(comboPos6), TRUE, TRUE, 0);
     gtk_grid_attach(selectionGrid, GTK_WIDGET(boxPos6), 2, 1, 1, 1);
 
-    // move grid to horizontal center, vertical center achieved through padding of box
+    // move grid to horizontal center, vertical center achieved through padding
+    // of box
     gtk_widget_set_halign(GTK_WIDGET(selectionGrid), GTK_ALIGN_CENTER);
     gtk_box_pack_start(pageOneBox, GTK_WIDGET(selectionGrid), TRUE, TRUE, 150);
 
-    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageOneBox), "Page_One", "Positionen");
+    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageOneBox), "Page_One",
+                         "Positionen");
 }
 
 /**
- * @brief Page 2 contains ordering a drink, with the progress shown in a progressbar
- * 
- * @param mainStack 
- * @param recListStore 
+ * @brief Page 2 contains ordering a drink, with the progress shown in a
+ * progressbar
+ *
+ * @param mainStack
+ * @param recListStore
  */
 void populateStackPage_Two(GtkStack *mainStack)
 {
@@ -235,16 +248,19 @@ void populateStackPage_Two(GtkStack *mainStack)
     gtk_widget_set_vexpand(GTK_WIDGET(pageTwoBox), TRUE);
     gtk_widget_set_hexpand(GTK_WIDGET(pageTwoBox), TRUE);
 
-    gtk_widget_set_name(GTK_WIDGET(pageTwoBox), "Box_P_2"); // for debugging or design
+    gtk_widget_set_name(GTK_WIDGET(pageTwoBox),
+                        "Box_P_2"); // for debugging or design
 
     /* create separator for visual "appeal", align it in center */
 
-    GtkSeparator *halfSeparator = GTK_SEPARATOR(gtk_separator_new(GTK_ORIENTATION_VERTICAL));
+    GtkSeparator *halfSeparator =
+        GTK_SEPARATOR(gtk_separator_new(GTK_ORIENTATION_VERTICAL));
     CHECK_WIDGET(halfSeparator, "Separator Page 2");
 
     /* set separator width and let it fill parent box vertically */
     gtk_widget_set_size_request(GTK_WIDGET(halfSeparator), 10, 0);
-    gtk_widget_compute_expand(GTK_WIDGET(halfSeparator), GTK_ORIENTATION_VERTICAL);
+    gtk_widget_compute_expand(GTK_WIDGET(halfSeparator),
+                              GTK_ORIENTATION_VERTICAL);
     gtk_widget_set_halign(GTK_WIDGET(halfSeparator), GTK_ALIGN_CENTER);
     gtk_widget_set_margin_start(GTK_WIDGET(halfSeparator), 50);
     gtk_widget_set_margin_end(GTK_WIDGET(halfSeparator), 50);
@@ -255,8 +271,10 @@ void populateStackPage_Two(GtkStack *mainStack)
 
     GtkBox *boxComboOrder = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
     GtkLabel *orderHeaderlabel = GTK_LABEL(gtk_label_new("Drink auswählen:"));
-    GtkComboBox *comboOrder = GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(listModel));
-    GtkToggleButton *orderStartButton = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Starte mixen!"));
+    GtkComboBox *comboOrder =
+        GTK_COMBO_BOX(gtk_combo_box_new_with_model_and_entry(listModel));
+    GtkToggleButton *orderStartButton =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Starte mixen!"));
     CHECK_WIDGET(boxComboOrder, "Box Page 2 links");
     CHECK_WIDGET(orderHeaderlabel, "Order Title");
     CHECK_WIDGET(comboOrder, "Order Combo Box");
@@ -266,9 +284,11 @@ void populateStackPage_Two(GtkStack *mainStack)
 
     /* pack order widgets into page box and align properly */
     gtk_widget_set_size_request(GTK_WIDGET(comboOrder), 400, 70);
-    gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderHeaderlabel), TRUE, FALSE, 0);
+    gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderHeaderlabel), TRUE, FALSE,
+                       0);
     gtk_box_pack_start(boxComboOrder, GTK_WIDGET(comboOrder), FALSE, FALSE, 0);
-    gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderStartButton), FALSE, FALSE, 0);
+    gtk_box_pack_start(boxComboOrder, GTK_WIDGET(orderStartButton), FALSE,
+                       FALSE, 0);
 
     gtk_widget_set_valign(GTK_WIDGET(boxComboOrder), GTK_ALIGN_CENTER);
     gtk_widget_set_halign(GTK_WIDGET(boxComboOrder), GTK_ALIGN_START);
@@ -277,7 +297,8 @@ void populateStackPage_Two(GtkStack *mainStack)
     gtk_widget_set_margin_end(GTK_WIDGET(boxComboOrder), 0);
 
     /* get entry of combo box to set properties */
-    GtkEntry *entryComboOrder = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboOrder)));
+    GtkEntry *entryComboOrder =
+        GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboOrder)));
     gtk_entry_set_text(entryComboOrder, "Drink auswählen!");
     gtk_editable_set_editable(GTK_EDITABLE(entryComboOrder), FALSE);
 
@@ -286,12 +307,12 @@ void populateStackPage_Two(GtkStack *mainStack)
 
     /* Connect order-recipe combo box with callback */
     gulong id = g_signal_connect(comboOrder, "changed",
-            G_CALLBACK(cb_on_combo_order_changed), NULL);
+                                 G_CALLBACK(cb_on_combo_order_changed), NULL);
     cb_set_combo_order_callback_id(id);
     cb_set_combo_order_widget(comboOrder);
 
     id = g_signal_connect(orderStartButton, "toggled",
-            G_CALLBACK(cb_on_recipe_order_toggle), NULL);
+                          G_CALLBACK(cb_on_recipe_order_toggle), NULL);
     cb_set_button_order_callback_id(id);
     cb_set_button_order_widget(orderStartButton);
 
@@ -304,12 +325,14 @@ void populateStackPage_Two(GtkStack *mainStack)
     CHECK_WIDGET(progressbar, "Progressbar");
     CHECK_WIDGET(progressbarLabel, "Progressbar label");
 
-    gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), TRUE, FALSE, 0);
+    gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbarLabel), TRUE,
+                       FALSE, 0);
     gtk_box_pack_start(progressbarBox, GTK_WIDGET(progressbar), TRUE, FALSE, 0);
 
     /* set progressbar height and let it fill parent box horizontally */
     gtk_widget_set_size_request(GTK_WIDGET(progressbar), 400, 0);
-    gtk_widget_compute_expand(GTK_WIDGET(progressbar), GTK_ORIENTATION_HORIZONTAL);
+    gtk_widget_compute_expand(GTK_WIDGET(progressbar),
+                              GTK_ORIENTATION_HORIZONTAL);
     gtk_widget_set_valign(GTK_WIDGET(progressbar), GTK_ALIGN_CENTER);
 
     gtk_widget_set_name(GTK_WIDGET(progressbarLabel), "Progressbar_Label");
@@ -327,12 +350,14 @@ void populateStackPage_Two(GtkStack *mainStack)
 
     gtk_box_pack_start(pageTwoBox, GTK_WIDGET(boxComboOrder), TRUE, FALSE, 0);
     gtk_box_pack_start(pageTwoBox, GTK_WIDGET(halfSeparator), TRUE, FALSE, 0);
-    gtk_box_pack_start(pageTwoBox, GTK_WIDGET(progressbarBox), TRUE, FALSE, 0); 
+    gtk_box_pack_start(pageTwoBox, GTK_WIDGET(progressbarBox), TRUE, FALSE, 0);
 
-    /* make sure page two box is centered (slightly unnecessary -> size request ?) */
-    //gtk_widget_set_halign(GTK_WIDGET(pageTwoBox), GTK_ALIGN_CENTER);
+    /* make sure page two box is centered (slightly unnecessary -> size request
+     * ?) */
+    // gtk_widget_set_halign(GTK_WIDGET(pageTwoBox), GTK_ALIGN_CENTER);
 
-    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageTwoBox), "Page_Two", "Bestellung");
+    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageTwoBox), "Page_Two",
+                         "Bestellung");
 }
 
 void populateStackPage_Three(GtkStack *mainStack)
@@ -350,25 +375,88 @@ void populateStackPage_Three(GtkStack *mainStack)
     /* align buttons-box vertically */
     gtk_widget_set_valign(GTK_WIDGET(manualPosBox), GTK_ALIGN_CENTER);
 
-    GtkToggleButton *manualPos1 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("1"));
-    GtkToggleButton *manualPos2 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("2"));
-    GtkToggleButton *manualPos3 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("3"));
-    GtkToggleButton *manualPos4 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("4"));
-    GtkToggleButton *manualPos5 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("5"));
-    GtkToggleButton *manualPos6 = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("6"));
+    GtkToggleButton *manualPos1 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 1"));
+    GtkToggleButton *manualPos2 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 2"));
+    GtkToggleButton *manualPos3 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 3"));
+    GtkToggleButton *manualPos4 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 4"));
+    GtkToggleButton *manualPos5 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 5"));
+    GtkToggleButton *manualPos6 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 6"));
+    GtkToggleButton *manualPos7 =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 7"));
+    GtkToggleButton *manualPosFinal =
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Ausgabe"));
 
     gint buttonPadding = 10;
 
-    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos1), TRUE, TRUE, buttonPadding);
-    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos2), TRUE, TRUE, buttonPadding);
-    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos3), TRUE, TRUE, buttonPadding);
-    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos4), TRUE, TRUE, buttonPadding);
-    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos5), TRUE, TRUE, buttonPadding);
-    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos6), TRUE, TRUE, buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos1), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos2), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos3), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos4), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos5), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos6), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos7), TRUE, TRUE,
+                       buttonPadding);
+    gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPosFinal), TRUE, TRUE,
+                       buttonPadding);
+
+    // Set callback handlers and ids
+    // position 1
+    gulong id = g_signal_connect(manualPos1, "toggled",
+                                 G_CALLBACK(cb_on_manual_pos_toggle),
+                                 GINT_TO_POINTER(PositionX_ONE));
+    cb_set_manual_pos_callback(manualPos1, PositionX_ONE, id);
+    // position 2
+    id = g_signal_connect(manualPos2, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_TWO));
+    cb_set_manual_pos_callback(manualPos2, PositionX_TWO, id);
+    // position 3
+    id = g_signal_connect(manualPos3, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_THREE));
+    cb_set_manual_pos_callback(manualPos3, PositionX_THREE, id);
+    // position 4
+    id = g_signal_connect(manualPos4, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_FOUR));
+    cb_set_manual_pos_callback(manualPos4, PositionX_FOUR, id);
+    // position 5
+    id = g_signal_connect(manualPos5, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_FIVE));
+    cb_set_manual_pos_callback(manualPos5, PositionX_FIVE, id);
+    // position 6
+    id = g_signal_connect(manualPos6, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_SIX));
+    cb_set_manual_pos_callback(manualPos6, PositionX_SIX, id);
+    // position 7
+    id = g_signal_connect(manualPos7, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_SEVEN));
+    cb_set_manual_pos_callback(manualPos7, PositionX_SEVEN, id);
+    // position final
+    id = g_signal_connect(manualPosFinal, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_FINAL));
+    cb_set_manual_pos_callback(manualPosFinal, PositionX_FINAL, id);
 
     gtk_box_pack_start(pageThreeBox, GTK_WIDGET(manualPosBox), TRUE, TRUE, 25);
 
-    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageThreeBox), "Page_Three", "Manuell");
+    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageThreeBox), "Page_Three",
+                         "Manuell");
 }
 
 void populateStackPage_Four(GtkStack *mainStack)
@@ -388,7 +476,8 @@ void populateStackPage_Four(GtkStack *mainStack)
     /* App version informations */
     GtkLabel *appInfoLabel = GTK_LABEL(gtk_label_new("App version:"));
     GtkLabel *appVersion = GTK_LABEL(gtk_label_new(ULTRA_VERSION));
-    GtkButton *appUpdateButton = GTK_BUTTON(gtk_button_new_with_label("Check Update"));
+    GtkButton *appUpdateButton =
+        GTK_BUTTON(gtk_button_new_with_label("Check Update"));
     gtk_widget_set_size_request(GTK_WIDGET(appUpdateButton), 60, 100);
     g_signal_connect(appUpdateButton, "clicked",
                      G_CALLBACK(cb_info_app_update_button_clicked), NULL);
@@ -400,9 +489,11 @@ void populateStackPage_Four(GtkStack *mainStack)
                             GTK_WIDGET(appVersion), GTK_POS_RIGHT, 1, 1);
 
     /* Microcontroller version informations */
-    GtkLabel *mcInfoLabel = GTK_LABEL(gtk_label_new("Microcontroller version:"));
+    GtkLabel *mcInfoLabel =
+        GTK_LABEL(gtk_label_new("Microcontroller version:"));
     GtkLabel *mcVersion = GTK_LABEL(gtk_label_new("Nicht ausgelesen"));
-    GtkButton *mcUpdateButton = GTK_BUTTON(gtk_button_new_with_label("Check Update"));
+    GtkButton *mcUpdateButton =
+        GTK_BUTTON(gtk_button_new_with_label("Check Update"));
     gtk_widget_set_size_request(GTK_WIDGET(mcUpdateButton), 60, 100);
 
     cb_info_set_mc_version_label(mcVersion);
@@ -416,10 +507,11 @@ void populateStackPage_Four(GtkStack *mainStack)
                             GTK_WIDGET(mcVersion), GTK_POS_RIGHT, 1, 1);
 
     gtk_label_set_xalign(GTK_LABEL(appInfoLabel), 1.0); // right-align
-    gtk_label_set_xalign(GTK_LABEL(mcInfoLabel), 1.0); // right-align
+    gtk_label_set_xalign(GTK_LABEL(mcInfoLabel), 1.0);  // right-align
 
     /* attach version grid to box */
     gtk_box_pack_start(pageFourBox, GTK_WIDGET(versionGrid), FALSE, FALSE, 25);
 
-    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageFourBox), "Page_Four", "Info");
+    gtk_stack_add_titled(mainStack, GTK_WIDGET(pageFourBox), "Page_Four",
+                         "Info");
 }

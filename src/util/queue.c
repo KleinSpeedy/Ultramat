@@ -1,78 +1,84 @@
 #include "util/queue.h"
+#include "proto/commands.pb.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-static inline int _cmd_queue_is_full(command_queue_t * const q)
+#define Q_IS_FULL(q) (((q->head + 1) % QUEUE_MAX_SIZE) == q->tail)
+#define Q_IS_EMPTY(q) (q->tail == q->head)
+
+int out_msg_q_is_empty(const out_msg_q *const q)
 {
-    return (q->head + 1) % QUEUE_MAX_SIZE == q->tail;
+    return Q_IS_EMPTY(q);
 }
 
-int cmd_queue_is_empty(command_queue_t * const q)
+int out_msg_q_init(out_msg_q *q)
 {
-    return (q->tail == q->head);
-}
+    q->tail = 0;
+    q->head = 0;
 
-// TODO: Change to static alloc with QUEUE_MAX_SIZE known
-int cmd_queue_init(command_queue_t *cq)
-{
-    cq->tail = 0;
-    cq->head = 0;
-
-    cq->commands = calloc(QUEUE_MAX_SIZE, sizeof(*cq->commands) * QUEUE_MAX_SIZE);
-    if(!cq->commands)
-        return -1;
+    memset(&q->messages, 0, Message_size * QUEUE_MAX_SIZE);
 
     return 0;
 }
 
-void cmd_queue_free(command_queue_t *cq)
+int in_resp_q_init(in_resp_q *q)
 {
-    if(!cq)
-        return;
+    q->tail = 0;
+    q->head = 0;
 
-    if(cq->commands != NULL)
-    {
-        free(cq->commands);
-        cq->commands = NULL;
-    }
-}
+    memset(&q->responses, 0, Response_size * QUEUE_MAX_SIZE);
 
-void cmd_queue_print(command_queue_t *cq)
-{
-    // TODO: Prints all elements even if 0
-    for(int i = 0; i < QUEUE_MAX_SIZE; i++)
-    {
-        const cmd_msg_t temp = cq->commands[i];
-        printf("%d %d %s\n", temp.id, temp.cmdBuffer.cmd, temp.cmdBuffer.data);
-    }
-}
-
-int cmd_queue_push(command_queue_t * const cq, const cmd_msg_t *msg)
-{
-    if(!cq || !msg)
-        return -1;
-
-    if(_cmd_queue_is_full(cq))
-        return -1;
-
-    memcpy(&(cq->commands[cq->head]), msg, sizeof(*msg));
-    cq->head = (cq->head + 1) % QUEUE_MAX_SIZE;
     return 0;
 }
 
-int cmd_queue_pop(command_queue_t * const cq, cmd_msg_t * const msg)
+int out_msg_q_push(out_msg_q *const q, const Message *msg)
 {
-    if(!cq)
+    if(!q || !msg)
         return -1;
 
-    if(cmd_queue_is_empty(cq))
+    if(Q_IS_FULL(q))
         return -1;
 
-    memcpy(msg, &cq->commands[cq->tail], sizeof(*msg));
-    // TODO: clear after copy ?
-    // memset(&cq->commands[cq->tail], 0, sizeof(*msg));
-    cq->tail = (cq->tail + 1) % QUEUE_MAX_SIZE;
+    memcpy(&q->messages[q->head], msg, sizeof(*msg));
+    q->head = (q->head + 1) % QUEUE_MAX_SIZE;
+    return 0;
+}
+
+int in_resp_q_push(in_resp_q *const q, const Response *resp)
+{
+    if(!q || !resp)
+        return -1;
+
+    if(Q_IS_FULL(q))
+        return -1;
+
+    memcpy(&q->responses[q->head], resp, sizeof(*resp));
+    q->head = (q->head + 1) % QUEUE_MAX_SIZE;
+    return 0;
+}
+
+int out_msg_q_pop(out_msg_q *const q, Message *const msg)
+{
+    if(!q || !msg)
+        return -1;
+
+    if(Q_IS_EMPTY(q))
+        return -1;
+
+    memcpy(msg, &q->messages[q->tail], sizeof(*msg));
+    q->tail = (q->tail + 1) % QUEUE_MAX_SIZE;
+    return 0;
+}
+
+int in_resp_q_pop(in_resp_q *const q, Response *const resp)
+{
+    if(!q || !resp)
+        return -1;
+
+    if(Q_IS_EMPTY(q))
+        return -1;
+
+    memcpy(resp, &q->responses[q->tail], sizeof(*resp));
+    q->tail = (q->tail + 1) % QUEUE_MAX_SIZE;
     return 0;
 }

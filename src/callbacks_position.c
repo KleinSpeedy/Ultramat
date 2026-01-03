@@ -1,15 +1,17 @@
 #include "callbacks_position.h"
 #include "callbacks_info.h"
-#include "drinks.h"
 #include "drinklists.h"
+#include "drinks.h"
 #include "gui.h"
-#include "serialcomms.h"
+#include "message_handler.h"
+#include "proto/commands.pb.h"
+#include "proto_serial.h"
 
-#include <stdio.h>
 #include <assert.h>
-#include <string.h>
+#include <stdio.h>
 
 // This array holds as many ingredients as there are approachable positions
+// with the exception of the final position
 static const Ingredient *activeIngredients_[PAGES_COMBO_POS_NUM];
 
 // The recipe selected by the order recipe combo box
@@ -19,6 +21,10 @@ static uint16_t recipeStepDoneCounter_ = 0;
 // Callback IDs for ingredient combo boxes and recipe combo box
 static gulong comboCbIds_[PAGES_COMBO_POS_NUM];
 static gulong recipeComboId_;
+
+// Callback ids for manual position toggle buttons, we have 8 positions
+static gulong manualPosButtonIds_[PositionX_FINAL];
+static GtkToggleButton *manualPosButtons_[PositionX_FINAL];
 
 // callback IDs for recipe order toggle button and motor switch
 static gulong buttonOrderCbId_;
@@ -38,7 +44,7 @@ static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId)
     // Reset completely or change back to former selected ingredient
     gtk_combo_box_set_active_iter(comboBox, NULL);
     gtk_entry_set_text(GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboBox))),
-            RESET_TEXT);
+                       RESET_TEXT);
     // don't forget to unblock signal again
     g_signal_handler_unblock(comboBox, handlerId);
 }
@@ -87,6 +93,21 @@ static int cb_ingredient_already_exists(const Ingredient *ing)
     return 0;
 }
 
+static void cb_set_manual_pos_sensitive_state(const gboolean state)
+{
+    // off by one is ok, as final is also num positions
+    for(int i = 0; i < PositionX_FINAL; i++)
+    {
+        // if we enable them, reset them too
+        if(state == TRUE)
+        {
+            cb_reset_toggle_button(manualPosButtons_[i],
+                                   manualPosButtonIds_[i]);
+        }
+        gtk_widget_set_sensitive(GTK_WIDGET(manualPosButtons_[i]), state);
+    }
+}
+
 /* PUBLIC FUNCTIONS */
 
 void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id)
@@ -103,14 +124,29 @@ void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id)
     comboCbIds_[pos] = id;
 }
 
+void cb_set_manual_pos_callback(GtkToggleButton *button, PositionX pos,
+                                uint64_t id)
+{
+    /* ID always greater 0 for successfull connections */
+    assert(id > 0);
+    assert(button != NULL);
+    assert(pos != PositionX_INVALID && pos <= PositionX_FINAL);
+    const uint8_t i = (uint8_t)(pos - 1);
+    manualPosButtonIds_[i] = id;
+
+    // add reference so it doesnt get cleared by glib
+    manualPosButtons_[i] = button;
+    g_object_add_weak_pointer(G_OBJECT(button),
+                              (gpointer *)&manualPosButtons_[i]);
+}
+
 void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
 {
     GtkTreeModel *treeModel = gtk_combo_box_get_model(comboBox);
     GtkTreeIter activeIter;
     uint16_t id;
     gtk_combo_box_get_active_iter(comboBox, &activeIter);
-    gtk_tree_model_get(treeModel, &activeIter,
-                       ING_COLUMN_ID, &id,
+    gtk_tree_model_get(treeModel, &activeIter, ING_COLUMN_ID, &id,
                        -1); // terminate
     Ingredient *selectedIng = drinks_io_get_ingredient_by_id(id);
 
@@ -156,14 +192,13 @@ void cb_set_combo_order_widget(GtkComboBox *widget)
 
 void cb_on_combo_order_changed(GtkComboBox *comboBox, void *data)
 {
-    (void) data;
+    (void)data;
 
     GtkTreeModel *treeModel = gtk_combo_box_get_model(comboBox);
     GtkTreeIter activeIter;
     uint16_t id;
     gtk_combo_box_get_active_iter(comboBox, &activeIter);
-    gtk_tree_model_get(treeModel, &activeIter,
-                       REC_COLUMN_ID, &id,
+    gtk_tree_model_get(treeModel, &activeIter, REC_COLUMN_ID, &id,
                        -1); // terminate
 
     Recipe *rec = drinks_io_get_recipe_by_id(id);
@@ -181,12 +216,13 @@ void cb_set_button_order_widget(GtkToggleButton *widget)
 {
     assert(widget != NULL);
     recipeOrderButton_ = widget;
-    g_object_add_weak_pointer(G_OBJECT(widget), (gpointer *)&recipeOrderButton_);
+    g_object_add_weak_pointer(G_OBJECT(widget),
+                              (gpointer *)&recipeOrderButton_);
 }
 
 void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
 {
-    (void) data;
+    (void)data;
 
     // dont do anything if toggled back to inactive
     if(!gtk_toggle_button_get_active(button))
@@ -205,7 +241,12 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
         gui_show_error_modal("Kein Rezept ausgewählt!");
         return;
     }
-    // TODO: Check if serial connection active
+    if(!proto_comms_thread_running())
+    {
+        cb_reset_toggle_button(button, buttonOrderCbId_);
+        gui_show_error_modal("Serial thread nicht aktiv!");
+        return;
+    }
 
     // check if all ingredients of recipe are active
     for(int i = 0; i < activeRecipe_->ingCount; i++)
@@ -223,11 +264,29 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
     // Disable combo box and toggle button:
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), FALSE);
-    if(comms_start_new_mixing(activeRecipe_) < 0)
+    if(proto_comms_start_new_mixing(activeRecipe_) < 0)
     {
         printf("start mixing failed\n");
         // TODO: Reset everything here
     }
+}
+
+void cb_on_manual_pos_toggle(GtkToggleButton *button, gpointer data)
+{
+    (void)button;
+    printf("Toggled button on pos %d\n", GPOINTER_TO_INT(data));
+
+    if(!proto_comms_thread_running())
+    {
+        gui_show_error_modal("Serial thread nicht aktiv!");
+        // index is always of by 1 for manual pos buttons
+        const uint8_t i = GPOINTER_TO_INT(data) - 1;
+        cb_reset_toggle_button(button, manualPosButtonIds_[i]);
+        return;
+    }
+
+    cb_set_manual_pos_sensitive_state(FALSE);
+    message_handler_move_x(GPOINTER_TO_INT(data));
 }
 
 void cb_set_motor_switch_callback_id(uint64_t id)
@@ -246,11 +305,11 @@ void cb_set_motor_switch_widget(GtkSwitch *widget)
 
 int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
 {
-    (void) data;
+    (void)data;
 
     if(state)
     {
-        if(comms_start_serial_connection() < 0)
+        if(proto_comms_start_serial_connection() < 0)
         {
             gui_show_error_modal("Fehler bei Kommunikationsaufbau");
             cb_set_switch_state(motorSwitch, FALSE);
@@ -260,7 +319,7 @@ int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
     }
     else
     {
-        comms_stop_serial_connection();
+        proto_comms_stop_serial_connection();
         gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
         cb_set_switch_state(motorSwitch, FALSE);
     }
@@ -277,9 +336,7 @@ void cb_set_progress_bar_widget(GtkProgressBar *widget)
 
 ComboPositions_t cb_get_position_by_id(const uint8_t id)
 {
-    for(ComboPositions_t pos = 0;
-        pos < PAGES_COMBO_POS_NUM;
-        ++pos)
+    for(ComboPositions_t pos = 0; pos < PAGES_COMBO_POS_NUM; ++pos)
     {
         if(!activeIngredients_[pos])
             continue;
@@ -292,29 +349,33 @@ ComboPositions_t cb_get_position_by_id(const uint8_t id)
 
 /* Callbacks for command done handlers */
 
-void cb_cmd_hello_there_done(const uint8_t *payload, const uint8_t size)
+void cb_cmd_hello_there_done(const Response *resp)
 {
     // activate recipe order
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), TRUE);
 
     // setting default version v0.0.1 in case payload is missing
     struct SemanticVersion vers = {0, 0, 1};
-    if(size < 4)
+    if(!resp || !resp->has_version)
     {
         gui_show_error_modal("Could not read real microcontroller version!");
         cb_info_set_mc_version(vers);
         return;
     }
-    vers.major = payload[1];
-    vers.minor = payload[2];
-    vers.bugfix = payload[3];
+    vers.major = resp->version.major;
+    vers.minor = resp->version.minor;
+    vers.bugfix = resp->version.bugfix;
     cb_info_set_mc_version(vers);
 }
 
-void cb_cmd_move_done(void)
+void cb_cmd_step_done(void)
 {
+    // dont forget move to final position
+    const uint16_t maxMoves = activeRecipe_->ingCount + 1;
+
     recipeStepDoneCounter_++;
-    const gdouble progressWidth = (1.0f / activeRecipe_->ingCount) * recipeStepDoneCounter_;
+    const gdouble progressWidth = (1.0f / maxMoves) * recipeStepDoneCounter_;
+
     // TODO: Floating point comparison
     // make sure we do not pass something above 1.0
     if(progressWidth >= 1.0f)
@@ -322,28 +383,42 @@ void cb_cmd_move_done(void)
     else
         gtk_progress_bar_set_fraction(progressBar_, progressWidth);
 
-    if(recipeStepDoneCounter_ == activeRecipe_->ingCount)
+    if(recipeStepDoneCounter_ == maxMoves)
     {
         recipeStepDoneCounter_ = 0;
         gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), TRUE);
         gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), TRUE);
         cb_reset_toggle_button(recipeOrderButton_, buttonOrderCbId_);
 
-        gui_show_info_modal("Drink ist fertig!");
-
         gtk_progress_bar_set_fraction(progressBar_, 0.0f);
+
+        gui_show_info_modal("Drink ist fertig!");
     }
+}
+
+void cb_cmd_move_x_done(void)
+{
+    // enable all manual pos buttons after move is done
+    cb_set_manual_pos_sensitive_state(TRUE);
 }
 
 void cb_error_serial_communication(const char *str)
 {
     // stop serial connection, disable order button and reset switch
-    comms_stop_serial_connection();
+    // WARNING: serial thread cancels itself here!
+    // proto_comms_stop_serial_connection();
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), TRUE);
     cb_set_switch_state(motorSwitch_, FALSE);
 
-    char errStr[128] = {0};
-    snprintf(errStr, sizeof(errStr), "Fehler bei Kommunikation: %s", str);
-    gui_show_error_modal(errStr);
+    if(!str)
+    {
+        gui_show_error_modal("Fehler bei Kommunikation");
+    }
+    else
+    {
+        char errStr[128] = {0};
+        snprintf(errStr, sizeof(errStr), "Fehler bei Kommunikation: %s", str);
+        gui_show_error_modal(errStr);
+    }
 }

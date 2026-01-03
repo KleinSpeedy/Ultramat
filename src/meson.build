@@ -14,6 +14,6 @@ source_files=[
   files('main.c'),
   files('message_handler.c'),
   files('pages.c'),
-  files('serialcomms.c'),
+  files('proto_serial.c'),
   util_files
 ]

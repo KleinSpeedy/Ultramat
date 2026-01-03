@@ -1,8 +1,8 @@
 #include "util/dynamic_array.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #define VLA_INITIAL_SIZE 5
@@ -34,7 +34,7 @@ int vla_append(VLArray_t *array, void *data)
 {
     if(!array || !data)
         return 1;
-    
+
     if(array->size == array->used)
     {
         const size_t newSize = ceil(array->size * RESIZE_FACTOR);

@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#define MAX_NAME_LENGTH     128
+#define MAX_NAME_LENGTH 128
 
 typedef struct Ingredient
 {
@@ -63,4 +63,4 @@ Recipe *drinks_io_get_recipe_by_id(uint16_t id);
  */
 VLArray_t *drinks_io_read_recipes(void);
 
-#endif //DRINKS_H
+#endif // DRINKS_H
