@@ -65,10 +65,7 @@ deps = [
   nanopb_dep,
 ]
 
-suffix = 'x86_64'
-if meson.is_cross_build()
-  suffix = 'aarch64'
-endif
+suffix = build_machine.cpu_family()
 
 # Release target
 executable(meson.project_name(),
