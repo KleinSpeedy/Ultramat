@@ -31,11 +31,16 @@ typedef enum
 void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id);
 
 /**
- * @brief set callback ID and button pointer for manual position toggle buttons
+ * @brief set callback ID and button pointer for manual x position toggle
+ * buttons
  */
-void cb_set_manual_pos_callback(GtkToggleButton *button, PositionX pos,
-                                uint64_t id);
+void cb_set_manual_pos_callback(GtkToggleButton *button, const PositionX pos,
+                                const uint64_t id);
 
+/**
+ * @brief set callback ID and button pointer for manual y position toggle button
+ */
+void cb_set_manual_pos_y_callback(GtkToggleButton *button, const gulong id);
 /**
  * @brief Set callback ID of recipe order combo widget
  */
@@ -78,23 +83,37 @@ int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data);
 void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data);
 
 /*
- * @brief manual position toggle button was pressed
+ * @brief manual x position toggle button was pressed
  */
 void cb_on_manual_pos_toggle(GtkToggleButton *button, gpointer data);
+
+/*
+ * @brief manual y position toggle button was pressed
+ */
+void cb_on_manual_pos_y_toggle(GtkToggleButton *button, gpointer data);
 
 /* ========== Callbacks for command done handlers ========== */
 
 // Setup command finished successfully, activate recipe ordering
-void cb_cmd_hello_there_done(const Response *resp);
+// NOTE: uses gtk widgets!
+gboolean cb_cmd_hello_there_done(gpointer data);
 
 // Recipe step move finished
-void cb_cmd_step_done(void);
+// NOTE: uses gtk widgets!
+gboolean cb_cmd_step_done(gpointer data);
 
 // error during serial communication, stop serial thread from GUI thread
+// NOTE: uses gtk widgets!
+// TODO: theoretically stops itself
 void cb_error_serial_communication(const char *str);
 
 // manual position move on X axis has finished
-void cb_cmd_move_x_done(void);
+// NOTE: uses gtk widgets!
+gboolean cb_cmd_move_x_done(gpointer data);
+
+// manual position move on Y axis has finished
+// NOTE: uses gtk widgets!
+gboolean cb_cmd_move_y_done(gpointer data);
 
 /* Util functions */
 

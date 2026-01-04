@@ -1,10 +1,11 @@
 /* This file contains the main implementation of the Graphical User Interface.
- * This consists of creating the different pages and implementing the main GUI thread.
-*/
+ * This consists of creating the different pages and implementing the main GUI
+ * thread.
+ */
 
+#include "gui.h"
 #include "callbacks_position.h"
 #include "checks.h"
-#include "gui.h"
 #include "pages.h"
 
 #include <gtk/gtk.h>
@@ -54,18 +55,16 @@ void gui_thread(void)
     createStackPages(mainStack);
 
     /* apply style.css to window */
-    gtk_style_context_add_provider_for_screen(
-        gdk_screen_get_default(),
-        GTK_STYLE_PROVIDER(css_provider),
-        GTK_STYLE_PROVIDER_PRIORITY_USER);
+    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+                                              GTK_STYLE_PROVIDER(css_provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     gtk_widget_show_all(GTK_WIDGET(mainWindow));
     // Start GUI application
     gtk_main();
 }
 
-static GtkWindow *
-create_main_window(void)
+static GtkWindow *create_main_window(void)
 {
     /* Main window */
     GtkWindow *window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
@@ -81,8 +80,7 @@ create_main_window(void)
     return window;
 }
 
-static GtkBox *
-create_main_box(void)
+static GtkBox *create_main_box(void)
 {
     /* vertical orientation for header line and stack pages */
     GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -91,23 +89,23 @@ create_main_box(void)
     return box;
 }
 
-static GtkStack *
-create_main_window_stack(void)
+static GtkStack *create_main_window_stack(void)
 {
     /* Stack holds different pages */
-    GtkStack *stack  = GTK_STACK(gtk_stack_new());
+    GtkStack *stack = GTK_STACK(gtk_stack_new());
     CHECK_WIDGET(stack, "Main Stack");
 
-    gtk_stack_set_transition_type(stack, GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
+    gtk_stack_set_transition_type(stack,
+                                  GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
     gtk_stack_set_transition_duration(stack, TRANSITION_SPEED);
 
     return stack;
 }
 
-static GtkStackSwitcher *
-create_main_stack_switcher(GtkStack *mainStack)
+static GtkStackSwitcher *create_main_stack_switcher(GtkStack *mainStack)
 {
-    GtkStackSwitcher *stackSwitcher = GTK_STACK_SWITCHER(gtk_stack_switcher_new());
+    GtkStackSwitcher *stackSwitcher =
+        GTK_STACK_SWITCHER(gtk_stack_switcher_new());
     CHECK_WIDGET(stackSwitcher, "Stack Switcher");
     gtk_stack_switcher_set_stack(stackSwitcher, mainStack);
     gtk_widget_set_name(GTK_WIDGET(stackSwitcher), "mainStackSwitcher");
@@ -116,8 +114,7 @@ create_main_stack_switcher(GtkStack *mainStack)
     return stackSwitcher;
 }
 
-static GtkSwitch *
-create_main_motor_switch(void)
+static GtkSwitch *create_main_motor_switch(void)
 {
     GtkSwitch *motorSwitch = GTK_SWITCH(gtk_switch_new());
     CHECK_WIDGET(motorSwitch, "Motor Switch");
@@ -126,7 +123,7 @@ create_main_motor_switch(void)
 
     // connect motor activate callback
     gulong id = g_signal_connect(motorSwitch, "state-set",
-            G_CALLBACK(cb_on_motor_switch_toggle), NULL);
+                                 G_CALLBACK(cb_on_motor_switch_toggle), NULL);
     cb_set_motor_switch_callback_id(id);
     cb_set_motor_switch_widget(motorSwitch);
 
@@ -155,32 +152,32 @@ static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
 
 void gui_show_error_modal(const gchar *errorStr)
 {
-    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(get_main_window()),
-                                    GTK_DIALOG_MODAL,
-                                    GTK_MESSAGE_ERROR,
-                                    GTK_BUTTONS_CLOSE,
-                                    "%s\n", errorStr);
+    GtkWidget *dialog = gtk_message_dialog_new(
+        GTK_WINDOW(get_main_window()), GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
+        GTK_BUTTONS_CLOSE, "%s\n", errorStr);
     // Ensure that the dialog box is destroyed when the user responds
-    g_signal_connect_swapped(dialog,
-            "response",
-            G_CALLBACK(gtk_widget_destroy),
-            dialog);
+    g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy),
+                             dialog);
 
-    gtk_dialog_run(GTK_DIALOG (dialog));
+    gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
+static gboolean gui_info_modal(gpointer data)
+{
+    const char *infoStr = data;
+    GtkWidget *dialog = gtk_message_dialog_new(
+        GTK_WINDOW(get_main_window()), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO,
+        GTK_BUTTONS_CLOSE, "%s\n", infoStr);
+    // Ensure that the dialog box is destroyed when the user responds
+    g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy),
+                             dialog);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+
+    return G_SOURCE_REMOVE;
 }
 
 void gui_show_info_modal(const char *infoStr)
 {
-    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(get_main_window()),
-                                    GTK_DIALOG_MODAL,
-                                    GTK_MESSAGE_INFO,
-                                    GTK_BUTTONS_CLOSE,
-                                    "%s\n", infoStr);
-    // Ensure that the dialog box is destroyed when the user responds
-    g_signal_connect_swapped(dialog,
-            "response",
-            G_CALLBACK(gtk_widget_destroy),
-            dialog);
-
-    gtk_dialog_run(GTK_DIALOG (dialog));
+    gdk_threads_add_idle(gui_info_modal, (gpointer)infoStr);
 }

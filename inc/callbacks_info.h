@@ -12,6 +12,7 @@ struct SemanticVersion
 void cb_info_set_mc_version_label(GtkLabel *label);
 
 // Set text of microcontroller version label
+// NOTE: uses gtk widgets
 void cb_info_set_mc_version(const struct SemanticVersion vers);
 
 // update button for GUI app was clicked

@@ -1,10 +1,8 @@
 #include "callbacks_info.h"
 
-#include <gtk/gtk.h>
 #include <assert.h>
 
 static GtkLabel *mcVersionLabel_ = NULL;
-static struct SemanticVersion mcVersion = {0, 0, 0};
 
 void cb_info_set_mc_version_label(GtkLabel *label)
 {
@@ -15,24 +13,22 @@ void cb_info_set_mc_version_label(GtkLabel *label)
 
 void cb_info_set_mc_version(const struct SemanticVersion vers)
 {
-    mcVersion = vers;
-
     char versionBuffer[14];
     memset(versionBuffer, 0, sizeof(versionBuffer));
-    snprintf(versionBuffer, sizeof(versionBuffer), "v%d.%d.%d",
-            vers.major, vers.minor, vers.bugfix);
+    snprintf(versionBuffer, sizeof(versionBuffer), "v%d.%d.%d", vers.major,
+             vers.minor, vers.bugfix);
 
     gtk_label_set_text(mcVersionLabel_, versionBuffer);
 }
 
 void cb_info_app_update_button_clicked(GtkButton *button)
 {
-    (void) button;
+    (void)button;
     g_print("App update requested\n");
 }
 
 void cb_info_mc_update_button_clicked(GtkButton *button)
 {
-    (void) button;
+    (void)button;
     g_print("MC update requested\n");
 }

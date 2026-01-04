@@ -10,7 +10,8 @@ int message_handler_add_incoming(const Response *resp);
 int message_handler_add_outgoing(Message *const msg);
 
 int message_handler_move_x(const PositionX pos);
+int message_handler_move_y(const uint8_t count);
 
-void message_handler_process(void);
+int message_handler_process(void);
 
 #endif // MESSAGE_HANDLER_H

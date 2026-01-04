@@ -2,6 +2,8 @@
 #include "callbacks_info.h"
 #include "drinklists.h"
 #include "drinks.h"
+#include "glib.h"
+#include "gtk/gtk.h"
 #include "gui.h"
 #include "message_handler.h"
 #include "proto/commands.pb.h"
@@ -25,6 +27,10 @@ static gulong recipeComboId_;
 // Callback ids for manual position toggle buttons, we have 8 positions
 static gulong manualPosButtonIds_[PositionX_FINAL];
 static GtkToggleButton *manualPosButtons_[PositionX_FINAL];
+
+// id and widget pointer for manual y button
+static gulong manualPosYButtonId_;
+static GtkToggleButton *manualPosYButton_;
 
 // callback IDs for recipe order toggle button and motor switch
 static gulong buttonOrderCbId_;
@@ -124,8 +130,8 @@ void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id)
     comboCbIds_[pos] = id;
 }
 
-void cb_set_manual_pos_callback(GtkToggleButton *button, PositionX pos,
-                                uint64_t id)
+void cb_set_manual_pos_callback(GtkToggleButton *button, const PositionX pos,
+                                const uint64_t id)
 {
     /* ID always greater 0 for successfull connections */
     assert(id > 0);
@@ -138,6 +144,16 @@ void cb_set_manual_pos_callback(GtkToggleButton *button, PositionX pos,
     manualPosButtons_[i] = button;
     g_object_add_weak_pointer(G_OBJECT(button),
                               (gpointer *)&manualPosButtons_[i]);
+}
+
+void cb_set_manual_pos_y_callback(GtkToggleButton *button, const gulong id)
+{
+    assert(id > 0);
+    assert(button != NULL);
+
+    manualPosYButtonId_ = id;
+    manualPosYButton_ = button;
+    g_object_add_weak_pointer(G_OBJECT(button), (gpointer *)&manualPosYButton_);
 }
 
 void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
@@ -273,9 +289,6 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
 
 void cb_on_manual_pos_toggle(GtkToggleButton *button, gpointer data)
 {
-    (void)button;
-    printf("Toggled button on pos %d\n", GPOINTER_TO_INT(data));
-
     if(!proto_comms_thread_running())
     {
         gui_show_error_modal("Serial thread nicht aktiv!");
@@ -287,6 +300,21 @@ void cb_on_manual_pos_toggle(GtkToggleButton *button, gpointer data)
 
     cb_set_manual_pos_sensitive_state(FALSE);
     message_handler_move_x(GPOINTER_TO_INT(data));
+}
+
+void cb_on_manual_pos_y_toggle(GtkToggleButton *button, gpointer data)
+{
+    (void)data;
+    if(!proto_comms_thread_running())
+    {
+        gui_show_error_modal("Serial thread nicht aktiv!");
+        cb_reset_toggle_button(button, manualPosYButtonId_);
+        return;
+    }
+
+    gtk_widget_set_sensitive(GTK_WIDGET(button), FALSE);
+    // just move once
+    message_handler_move_y(1);
 }
 
 void cb_set_motor_switch_callback_id(uint64_t id)
@@ -327,6 +355,11 @@ int cb_on_motor_switch_toggle(GtkSwitch *motorSwitch, int state, void *data)
     return TRUE;
 }
 
+void cb_deactivate_motor_switch(void)
+{
+    // TODO: reset here
+}
+
 void cb_set_progress_bar_widget(GtkProgressBar *widget)
 {
     assert(widget != NULL);
@@ -349,8 +382,9 @@ ComboPositions_t cb_get_position_by_id(const uint8_t id)
 
 /* Callbacks for command done handlers */
 
-void cb_cmd_hello_there_done(const Response *resp)
+gboolean cb_cmd_hello_there_done(gpointer data)
 {
+    const Response *resp = data;
     // activate recipe order
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), TRUE);
 
@@ -360,16 +394,19 @@ void cb_cmd_hello_there_done(const Response *resp)
     {
         gui_show_error_modal("Could not read real microcontroller version!");
         cb_info_set_mc_version(vers);
-        return;
+        return G_SOURCE_REMOVE;
     }
     vers.major = resp->version.major;
     vers.minor = resp->version.minor;
     vers.bugfix = resp->version.bugfix;
     cb_info_set_mc_version(vers);
+
+    return G_SOURCE_REMOVE;
 }
 
-void cb_cmd_step_done(void)
+gboolean cb_cmd_step_done(gpointer data)
 {
+    (void)data;
     // dont forget move to final position
     const uint16_t maxMoves = activeRecipe_->ingCount + 1;
 
@@ -394,12 +431,26 @@ void cb_cmd_step_done(void)
 
         gui_show_info_modal("Drink ist fertig!");
     }
+
+    return G_SOURCE_REMOVE;
 }
 
-void cb_cmd_move_x_done(void)
+gboolean cb_cmd_move_x_done(gpointer data)
 {
+    (void)data;
     // enable all manual pos buttons after move is done
     cb_set_manual_pos_sensitive_state(TRUE);
+
+    return G_SOURCE_REMOVE;
+}
+
+gboolean cb_cmd_move_y_done(gpointer data)
+{
+    (void)data;
+    cb_reset_toggle_button(manualPosYButton_, manualPosYButtonId_);
+    gtk_widget_set_sensitive(GTK_WIDGET(manualPosYButton_), TRUE);
+
+    return G_SOURCE_REMOVE;
 }
 
 void cb_error_serial_communication(const char *str)

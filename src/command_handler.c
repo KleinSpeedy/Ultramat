@@ -1,5 +1,6 @@
 #include "command_handler.h"
 #include "callbacks_position.h"
+#include "gdk/gdk.h"
 #include "proto/commands.pb.h"
 
 #include <stdio.h>
@@ -26,12 +27,7 @@ typedef struct id_handler_pair
 static int hello_there_handler(const Response *);
 static int recipe_step_handler(const Response *);
 static int move_x_handler(const Response *);
-
-static int move_y_handler(const Response *resp)
-{
-    (void)resp;
-    return 0;
-}
+static int move_y_handler(const Response *);
 
 /* END command handler function declaration */
 
@@ -76,28 +72,34 @@ static int execute_cmd_handler(const Response *resp)
 
 static int hello_there_handler(const Response *resp)
 {
-    // id + 3 bytes for major, minor, bugfix
     if(!resp)
         return -1;
 
-    cb_cmd_hello_there_done(resp);
+    gdk_threads_add_idle(cb_cmd_hello_there_done, (gpointer)resp);
     return 0;
 }
 
 static int recipe_step_handler(const Response *resp)
 {
-    if(!resp)
-        return -1;
+    (void)resp;
 
-    printf("Recipe step handler for id %d\n", resp->id);
-    cb_cmd_step_done();
+    gdk_threads_add_idle(cb_cmd_step_done, NULL);
     return 0;
 }
 
 static int move_x_handler(const Response *resp)
 {
     (void)resp;
-    cb_cmd_move_x_done();
+
+    gdk_threads_add_idle(cb_cmd_move_x_done, NULL);
+    return 0;
+}
+
+static int move_y_handler(const Response *resp)
+{
+    (void)resp;
+
+    gdk_threads_add_idle(cb_cmd_move_y_done, NULL);
     return 0;
 }
 

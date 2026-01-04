@@ -34,7 +34,7 @@ typedef enum error_type
     ERROR_NUM
 } eErrorType;
 
-#define WORKER_TIMEOUT_DONE 60.0f // seconds
+#define WORKER_TIMEOUT_DONE 90.0f // seconds
 
 typedef struct message_handler
 {
@@ -217,10 +217,26 @@ int message_handler_move_x(const PositionX pos)
     return message_handler_add_outgoing(&out);
 }
 
-void message_handler_process(void)
+int message_handler_move_y(const uint8_t count)
+{
+    // TODO: Magic number, set this somewhere
+    if(count <= 0 || count > 10)
+        return -1;
+
+    Message out = Message_init_zero;
+    out.type = CmdType_MOVE_Y;
+    out.which_payload = Message_yCount_tag;
+    out.payload.yCount = count;
+
+    return message_handler_add_outgoing(&out);
+}
+
+int message_handler_process(void)
 {
     Response resp = Response_init_zero;
     Message msg = Message_init_zero;
+
+    int ret = 0;
 
     switch(worker_.fsmState)
     {
@@ -286,7 +302,10 @@ void message_handler_process(void)
     {
         cb_error_serial_communication(
             message_handler_error_string(worker_.error));
+        ret = -1;
         break;
     }
     }
+
+    return ret;
 }

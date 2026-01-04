@@ -5,9 +5,11 @@
 #include "pb_encode.h"
 #include "proto/commands.pb.h"
 
+#include <linux/prctl.h>
 #include <pthread.h>
 #include <serial.h>
 #include <stdio.h>
+#include <sys/prctl.h>
 #include <termios.h>
 
 // serial handle
@@ -17,7 +19,10 @@ static serial_t *ser_ = NULL;
     x = NULL
 
 // TODO: Set this differently
+#ifndef SERIAL_PORT
 #define SERIAL_PORT "/dev/ttyACM0"
+#endif
+
 #define SERIAL_BAUD 115200
 
 // thread handle
@@ -187,6 +192,8 @@ static void *proto_comms_serial_thread_func(void *arg)
 {
     (void)arg;
 
+    // NOTE: Name can only be 16 bytes long including null terminator
+    prctl(PR_SET_NAME, "UltraSerial", 0, 0, 0);
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
     pthread_cleanup_push(proto_comms_serial_thread_cleanup, NULL);
@@ -216,7 +223,10 @@ static void *proto_comms_serial_thread_func(void *arg)
             }
         }
 
-        message_handler_process();
+        if(message_handler_process() < 0)
+        {
+            break;
+        }
     }
 
     pthread_cleanup_pop(0);

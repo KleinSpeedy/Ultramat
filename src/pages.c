@@ -376,23 +376,23 @@ void populateStackPage_Three(GtkStack *mainStack)
     gtk_widget_set_valign(GTK_WIDGET(manualPosBox), GTK_ALIGN_CENTER);
 
     GtkToggleButton *manualPos1 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 1"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Pumpen"));
     GtkToggleButton *manualPos2 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 2"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 1"));
     GtkToggleButton *manualPos3 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 3"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 2"));
     GtkToggleButton *manualPos4 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 4"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 3"));
     GtkToggleButton *manualPos5 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 5"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 4"));
     GtkToggleButton *manualPos6 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 6"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 5"));
     GtkToggleButton *manualPos7 =
-        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 7"));
+        GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Position 6"));
     GtkToggleButton *manualPosFinal =
         GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Ausgabe"));
 
-    gint buttonPadding = 10;
+    const gint buttonPadding = 10;
 
     gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPos1), TRUE, TRUE,
                        buttonPadding);
@@ -411,11 +411,27 @@ void populateStackPage_Three(GtkStack *mainStack)
     gtk_box_pack_start(manualPosBox, GTK_WIDGET(manualPosFinal), TRUE, TRUE,
                        buttonPadding);
 
-    // Set callback handlers and ids
+    GtkBox *yMoveBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 25));
+    CHECK_WIDGET(yMoveBox, "Manual y move");
+
+    GtkToggleButton *yMoveBtn = GTK_TOGGLE_BUTTON(
+        gtk_toggle_button_new_with_label("Vertikale Bewegung"));
+
+    gtk_box_pack_start(yMoveBox, GTK_WIDGET(yMoveBtn), TRUE, FALSE,
+                       buttonPadding);
+
+    // Set callback handlers and ids for x and y manual buttons
+
+    // y button
+    gulong id = g_signal_connect(yMoveBtn, "toggled",
+                                 G_CALLBACK(cb_on_manual_pos_y_toggle), NULL);
+    cb_set_manual_pos_y_callback(yMoveBtn, id);
+
+    // x buttons
     // position 1
-    gulong id = g_signal_connect(manualPos1, "toggled",
-                                 G_CALLBACK(cb_on_manual_pos_toggle),
-                                 GINT_TO_POINTER(PositionX_ONE));
+    id = g_signal_connect(manualPos1, "toggled",
+                          G_CALLBACK(cb_on_manual_pos_toggle),
+                          GINT_TO_POINTER(PositionX_ONE));
     cb_set_manual_pos_callback(manualPos1, PositionX_ONE, id);
     // position 2
     id = g_signal_connect(manualPos2, "toggled",
@@ -454,7 +470,7 @@ void populateStackPage_Three(GtkStack *mainStack)
     cb_set_manual_pos_callback(manualPosFinal, PositionX_FINAL, id);
 
     gtk_box_pack_start(pageThreeBox, GTK_WIDGET(manualPosBox), TRUE, TRUE, 25);
-
+    gtk_box_pack_start(pageThreeBox, GTK_WIDGET(yMoveBox), TRUE, TRUE, 25);
     gtk_stack_add_titled(mainStack, GTK_WIDGET(pageThreeBox), "Page_Three",
                          "Manuell");
 }
