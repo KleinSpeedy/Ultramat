@@ -7,15 +7,15 @@
 #include "drinks.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define BUFFER_SIZE 256
 
-static const char * const ingFileStr = "res/ingredients.txt";
-static const char * const recFileStr = "res/recipes.txt";
+static const char *const ingFileStr = "res/ingredients.txt";
+static const char *const recFileStr = "res/recipes.txt";
 
-static const char * const SEPARATOR = ";";
+static const char *const SEPARATOR = ";";
 
 // TODO: Can this be done better ?
 static VLArray_t ingArray;
@@ -152,7 +152,7 @@ VLArray_t *drinks_io_read_ingredients(void)
             fclose(fp);
             return NULL;
         }
-        memset(inputBuffer, 0 , BUFFER_SIZE);
+        memset(inputBuffer, 0, BUFFER_SIZE);
     }
 
     fclose(fp);
@@ -198,9 +198,19 @@ VLArray_t *drinks_io_read_recipes(void)
             fclose(fp);
             return NULL;
         }
-        memset(input_buffer, 0 , sizeof(input_buffer));
+        memset(input_buffer, 0, sizeof(input_buffer));
     }
 
     fclose(fp);
     return &recArray;
+}
+
+void drinks_io_recipe_custom_free(void *data)
+{
+    struct Recipe *r = data;
+    if(r->ingPairs != NULL)
+    {
+        free(r->ingPairs);
+        r->ingPairs = NULL;
+    }
 }

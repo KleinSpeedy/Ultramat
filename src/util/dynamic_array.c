@@ -18,10 +18,15 @@ void vla_init(VLArray_t *array, size_t elemSize)
     array->size = VLA_INITIAL_SIZE;
 }
 
-void vla_free(VLArray_t *array)
+void vla_free(VLArray_t *array, custom_free_t free_func)
 {
     if(!array)
         return;
+
+    if(free_func != NULL)
+    {
+        free_func(array->data);
+    }
 
     if(array->data != NULL)
     {

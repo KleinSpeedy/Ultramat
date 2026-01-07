@@ -63,4 +63,9 @@ Recipe *drinks_io_get_recipe_by_id(uint16_t id);
  */
 VLArray_t *drinks_io_read_recipes(void);
 
+/**
+ * @brief free all dynamic allocted members of recipe structues
+ */
+void drinks_io_recipe_custom_free(void *data);
+
 #endif // DRINKS_H
