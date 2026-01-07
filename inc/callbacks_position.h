@@ -28,7 +28,8 @@ typedef enum
 /**
  * @brief Set callback ID of ingredient postion combo widgets
  */
-void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id);
+void cb_set_combo_position_callback(GtkComboBox *comboBox, ComboPositions_t pos,
+                                    uint64_t id);
 
 /**
  * @brief set callback ID and button pointer for manual x position toggle
@@ -59,6 +60,8 @@ void cb_set_button_order_callback_id(uint64_t id);
 void cb_set_button_order_widget(GtkToggleButton *widget);
 // setter for progress bar widget
 void cb_set_progress_bar_widget(GtkProgressBar *widget);
+
+void cb_set_combo_position_image(GtkImage *img, const ComboPositions_t pos);
 
 /* ========== GTK Widget event callbacks ========== */
 
@@ -91,6 +94,11 @@ void cb_on_manual_pos_toggle(GtkToggleButton *button, gpointer data);
  * @brief manual y position toggle button was pressed
  */
 void cb_on_manual_pos_y_toggle(GtkToggleButton *button, gpointer data);
+
+/*
+ * @brief Reset the position ingredient to no ingredient selected
+ */
+void cb_on_reset_btn_clicked(GtkButton *button, gpointer data);
 
 /* ========== Callbacks for command done handlers ========== */
 

@@ -12,6 +12,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define IMG_PIXEL_SIZE 128
+
 // This array holds as many ingredients as there are approachable positions
 // with the exception of the final position
 static const Ingredient *activeIngredients_[PAGES_COMBO_POS_NUM];
@@ -23,6 +25,10 @@ static uint16_t recipeStepDoneCounter_ = 0;
 // Callback IDs for ingredient combo boxes and recipe combo box
 static gulong comboCbIds_[PAGES_COMBO_POS_NUM];
 static gulong recipeComboId_;
+// pointer to combo boxes for positions
+static GtkComboBox *comboBoxs_[PAGES_COMBO_POS_NUM];
+// pointer to icons for positions
+static GtkImage *images_[PAGES_COMBO_POS_NUM];
 
 // Callback ids for manual position toggle buttons, we have 8 positions
 static gulong manualPosButtonIds_[PositionX_FINAL];
@@ -43,14 +49,45 @@ static GtkProgressBar *progressBar_ = NULL;
 
 #define ALREADY_SELECTED_ERROR "Zutat bereits ausgewählt!"
 
-static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId)
+static void cb_reset_ingredient(const ComboPositions_t pos)
+{
+    assert(pos > PAGES_COMBO_POS_INVALID && pos < PAGES_COMBO_POS_NUM);
+    activeIngredients_[pos] = NULL;
+}
+
+static void cb_set_ing_pos(const Ingredient *ing, const int pos)
+{
+    assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM && ing != NULL);
+    activeIngredients_[pos] = ing;
+}
+
+static const Ingredient *cb_get_ing_pos(int pos)
+{
+    assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM);
+    return activeIngredients_[pos];
+}
+
+static void cb_clear_pos_img(const ComboPositions_t pos)
+{
+    gtk_image_clear(images_[pos]);
+    // set default icon
+    gtk_image_set_from_pixbuf(
+        images_[pos],
+        gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), "image-loading",
+                                 IMG_PIXEL_SIZE, 0, NULL));
+}
+
+static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId,
+                               const ComboPositions_t pos)
 {
     // block signal emit because we are setting active entry
     g_signal_handler_block(comboBox, handlerId);
-    // Reset completely or change back to former selected ingredient
+    // Reset completely
     gtk_combo_box_set_active_iter(comboBox, NULL);
     gtk_entry_set_text(GTK_ENTRY(gtk_bin_get_child(GTK_BIN(comboBox))),
                        RESET_TEXT);
+    cb_clear_pos_img(pos);
+    cb_reset_ingredient(pos);
     // don't forget to unblock signal again
     g_signal_handler_unblock(comboBox, handlerId);
 }
@@ -68,18 +105,6 @@ static void cb_set_switch_state(GtkSwitch *motorSwitch, gboolean state)
     gtk_switch_set_state(motorSwitch, state);
     gtk_switch_set_active(motorSwitch, state);
     g_signal_handler_unblock(motorSwitch, switchMotorCbId_);
-}
-
-static void cb_set_ing_pos(const Ingredient *ing, const int pos)
-{
-    assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM && ing != NULL);
-    activeIngredients_[pos] = ing;
-}
-
-static const Ingredient *cb_get_ing_pos(int pos)
-{
-    assert(pos >= 0 && pos < PAGES_COMBO_POS_NUM);
-    return activeIngredients_[pos];
 }
 
 // TODO: Keep return values consistent across project
@@ -114,20 +139,30 @@ static void cb_set_manual_pos_sensitive_state(const gboolean state)
     }
 }
 
+static void cb_set_pos_img(GdkPixbuf *pixbuf, const ComboPositions_t pos)
+{
+    if(!pixbuf)
+    {
+        g_warning("Could not load pixbuf");
+        return;
+    }
+
+    gtk_image_clear(images_[pos]);
+    gtk_image_set_from_pixbuf(images_[pos], pixbuf);
+}
+
 /* PUBLIC FUNCTIONS */
 
-void cb_set_combo_position_callback_id(ComboPositions_t pos, uint64_t id)
+void cb_set_combo_position_callback(GtkComboBox *comboBox, ComboPositions_t pos,
+                                    uint64_t id)
 {
+    assert(comboBox != NULL);
     /* ID always greater 0 for successfull connections */
     assert(id > 0);
     assert(pos != PAGES_COMBO_POS_INVALID && pos < PAGES_COMBO_POS_NUM);
-    if(pos == PAGES_COMBO_POS_INVALID || pos >= PAGES_COMBO_POS_NUM)
-    {
-        // TOOD: Proper error log
-        fprintf(stderr, "Error: Out of bounds callback id\n");
-        return;
-    }
     comboCbIds_[pos] = id;
+    comboBoxs_[pos] = comboBox;
+    g_object_add_weak_pointer(G_OBJECT(comboBox), (gpointer *)&comboBoxs_[pos]);
 }
 
 void cb_set_manual_pos_callback(GtkToggleButton *button, const PositionX pos,
@@ -161,21 +196,26 @@ void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
     GtkTreeModel *treeModel = gtk_combo_box_get_model(comboBox);
     GtkTreeIter activeIter;
     uint16_t id;
+    GdkPixbuf *pixbuf;
     gtk_combo_box_get_active_iter(comboBox, &activeIter);
     gtk_tree_model_get(treeModel, &activeIter, ING_COLUMN_ID, &id,
+                       ING_COLUMN_ICON, &pixbuf,
                        -1); // terminate
     Ingredient *selectedIng = drinks_io_get_ingredient_by_id(id);
 
-    if(cb_get_ing_pos(GPOINTER_TO_INT(data)) == NULL)
+    const ComboPositions_t pos = GPOINTER_TO_INT(data);
+
+    if(cb_get_ing_pos(pos) == NULL)
     {
         // set ingredient to position if it doesnt already exist
         if(!cb_ingredient_already_exists(selectedIng))
         {
-            cb_set_ing_pos(selectedIng, GPOINTER_TO_INT(data));
+            cb_set_ing_pos(selectedIng, pos);
+            cb_set_pos_img(pixbuf, pos);
         }
         else
         {
-            cb_reset_combo_box(comboBox, comboCbIds_[GPOINTER_TO_INT(data)]);
+            cb_reset_combo_box(comboBox, comboCbIds_[pos], pos);
             gui_show_error_modal(ALREADY_SELECTED_ERROR);
         }
         return;
@@ -183,13 +223,21 @@ void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
 
     if(cb_ingredient_already_exists(selectedIng))
     {
-        cb_reset_combo_box(comboBox, comboCbIds_[GPOINTER_TO_INT(data)]);
+        cb_reset_combo_box(comboBox, comboCbIds_[pos], pos);
         gui_show_error_modal(ALREADY_SELECTED_ERROR);
         return;
     }
 
-    // reset the ingredient on position
-    cb_set_ing_pos(selectedIng, GPOINTER_TO_INT(data));
+    // ingredient changed
+    cb_set_ing_pos(selectedIng, pos);
+    cb_set_pos_img(pixbuf, pos);
+}
+
+void cb_on_reset_btn_clicked(GtkButton *button, gpointer data)
+{
+    (void)button;
+    const ComboPositions_t pos = GPOINTER_TO_INT(data);
+    cb_reset_combo_box(comboBoxs_[pos], comboCbIds_[pos], pos);
 }
 
 void cb_set_combo_order_callback_id(uint64_t id)
@@ -365,6 +413,19 @@ void cb_set_progress_bar_widget(GtkProgressBar *widget)
     assert(widget != NULL);
     progressBar_ = widget;
     g_object_add_weak_pointer(G_OBJECT(widget), (gpointer *)&progressBar_);
+}
+
+void cb_set_combo_position_image(GtkImage *img, const ComboPositions_t pos)
+{
+    assert(img != NULL);
+    assert(pos > PAGES_COMBO_POS_INVALID && pos < PAGES_COMBO_POS_NUM);
+
+    // set default size
+    gtk_image_set_pixel_size(img, IMG_PIXEL_SIZE);
+    images_[pos] = img;
+    // clear and set default icon
+    cb_clear_pos_img(pos);
+    g_object_add_weak_pointer(G_OBJECT(img), (gpointer)&images_[pos]);
 }
 
 ComboPositions_t cb_get_position_by_id(const uint8_t id)

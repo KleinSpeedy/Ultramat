@@ -23,10 +23,6 @@ static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
 
 // HACK: Find better solution than static var and getter
 static GtkWindow *mainWindow_;
-static GtkWindow *get_main_window(void)
-{
-    return mainWindow_;
-}
 
 void gui_thread(void)
 {
@@ -35,11 +31,9 @@ void gui_thread(void)
 
     /* Create containers and navigation widgets */
 
-    GtkWindow *mainWindow = create_main_window();
+    mainWindow_ = create_main_window();
     GtkBox *mainBox = create_main_box();
-    gtk_container_add(GTK_CONTAINER(mainWindow), GTK_WIDGET(mainBox));
-    // TODO: Find better alternative
-    mainWindow_ = mainWindow;
+    gtk_container_add(GTK_CONTAINER(mainWindow_), GTK_WIDGET(mainBox));
 
     GtkStack *mainStack = create_main_window_stack();
     gtk_box_pack_start(mainBox, GTK_WIDGET(mainStack), TRUE, TRUE, 0);
@@ -59,7 +53,7 @@ void gui_thread(void)
                                               GTK_STYLE_PROVIDER(css_provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-    gtk_widget_show_all(GTK_WIDGET(mainWindow));
+    gtk_widget_show_all(GTK_WIDGET(mainWindow_));
     // Start GUI application
     gtk_main();
 }
@@ -153,7 +147,7 @@ static void create_window_top_header(GtkStackSwitcher *mainStackSwitcher,
 void gui_show_error_modal(const gchar *errorStr)
 {
     GtkWidget *dialog = gtk_message_dialog_new(
-        GTK_WINDOW(get_main_window()), GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
+        GTK_WINDOW(mainWindow_), GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
         GTK_BUTTONS_CLOSE, "%s\n", errorStr);
     // Ensure that the dialog box is destroyed when the user responds
     g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy),
@@ -162,11 +156,11 @@ void gui_show_error_modal(const gchar *errorStr)
     gtk_dialog_run(GTK_DIALOG(dialog));
 }
 
-static gboolean gui_info_modal(gpointer data)
+static gboolean info_modal(gpointer data)
 {
     const char *infoStr = data;
     GtkWidget *dialog = gtk_message_dialog_new(
-        GTK_WINDOW(get_main_window()), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO,
+        GTK_WINDOW(mainWindow_), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO,
         GTK_BUTTONS_CLOSE, "%s\n", infoStr);
     // Ensure that the dialog box is destroyed when the user responds
     g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy),
@@ -177,7 +171,8 @@ static gboolean gui_info_modal(gpointer data)
     return G_SOURCE_REMOVE;
 }
 
+// TODO: This should only be run by gtk main thread
 void gui_show_info_modal(const char *infoStr)
 {
-    gdk_threads_add_idle(gui_info_modal, (gpointer)infoStr);
+    gdk_threads_add_idle(info_modal, (gpointer)infoStr);
 }
