@@ -23,6 +23,9 @@ typedef enum
     PAGES_COMBO_POS_NUM
 } ComboPositions_t;
 
+// Get combo position label string for specific position
+const char *cb_get_combo_pos_string(const ComboPositions_t pos);
+
 /* ========== CallbackID setter for GTK GUI ========== */
 
 /**

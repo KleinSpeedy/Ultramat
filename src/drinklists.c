@@ -80,6 +80,8 @@ static void lists_add_recipes(VLArray_t *recArray)
         gtk_list_store_set(recListStore, &iter, REC_COLUMN_NAME, name,
                            REC_COLUMN_ID, id,
                            -1); // terminate
+
+        g_free((gpointer)name);
     }
 }
 

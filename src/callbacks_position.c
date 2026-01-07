@@ -11,6 +11,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #define IMG_PIXEL_SIZE 128
 
@@ -152,6 +153,18 @@ static void cb_set_pos_img(GdkPixbuf *pixbuf, const ComboPositions_t pos)
 }
 
 /* PUBLIC FUNCTIONS */
+
+const char *cb_get_combo_pos_string(const ComboPositions_t pos)
+{
+    assert(pos > PAGES_COMBO_POS_INVALID && pos < PAGES_COMBO_POS_NUM);
+
+    // TODO: add pump 2 and 3
+    static const char *comboPosStrMap[] = {"Pumpe 1", // "Pumpe 2", "Pumpe 3",
+                                           "Barbutler 1", "Barbutler 2",
+                                           "Barbutler 3", "Barbutler 4",
+                                           "Barbutler 5", "Barbutler 6"};
+    return comboPosStrMap[pos];
+}
 
 void cb_set_combo_position_callback(GtkComboBox *comboBox, ComboPositions_t pos,
                                     uint64_t id)
