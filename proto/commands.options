@@ -2,6 +2,9 @@ Message.yCount      int_size:8
 
 RecipeStep.yCount   int_size:8
 
+PumpStep.pumpPos    int_size:8
+PumpStep.seconds    int_size:8
+
 McVersion.major     int_size:8
 McVersion.minor     int_size:8
 McVersion.bugfix    int_size:8

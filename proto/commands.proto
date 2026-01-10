@@ -7,6 +7,7 @@ enum CmdType {
   RECIPE_STEP = 3;
   MOVE_X = 4;
   MOVE_Y = 5;
+  PUMP_STEP = 6;
 }
 
 enum ResponseType {
@@ -37,8 +38,15 @@ message McVersion {
 
 message RecipeStep {
   PositionX xPos = 1;
-  uint32 yCount = 2;
+  // TODO: Optional or oneof?
+  optional uint32 yCount = 2;
+  optional PumpStep pump = 3;
 }
+
+message PumpStep {
+  uint32 pumpPos = 1;
+  uint32 seconds = 2;
+};
 
 message Message {
   uint32 id = 1;
@@ -49,6 +57,7 @@ message Message {
     PositionX xPos = 4;
     uint32 yCount = 5;
     bool stopDefault = 6;   // take default pos after stopping
+    PumpStep pumpStep = 7;
   }
 }
 
