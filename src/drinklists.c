@@ -32,7 +32,6 @@ static GdkPixbuf *load_icon(const char *filename)
         g_info("No image needed\n");
         return gtk_icon_theme_load_icon(theme, "image-missing", 128, 0, NULL);
     }
-    // WICHTIG: _at_scale nutzen, sonst sprengen große Bilder das Layout!
     pixbuf =
         gdk_pixbuf_new_from_file_at_scale(filename, 128, 128, TRUE, &error);
 

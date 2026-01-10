@@ -199,7 +199,6 @@ int message_handler_add_outgoing(Message *const msg)
         return -1;
     }
 
-    printf("Adding id %d type %d\n", msg->id, msg->type);
     command_handler_add(nextId, msg->type);
     return 0;
 }

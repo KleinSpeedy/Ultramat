@@ -43,10 +43,10 @@ void createStackPages(GtkStack *mainStack)
     populateStackPage_Four(mainStack);
 }
 
-static GtkBox *add_ing_selection(const ComboPositions_t pos)
+static GtkBox *add_ing_selection(const IngPos_t *ingPos)
 {
     GtkTreeModel *ingListModel = GTK_TREE_MODEL(lists_ingredient_store());
-    const gchar *posStr = cb_get_combo_pos_string(pos);
+    const gchar *posStr = cb_get_combo_pos_string(*ingPos);
 
     GtkBox *boxPos = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     GtkBox *boxComboReset = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
@@ -59,7 +59,7 @@ static GtkBox *add_ing_selection(const ComboPositions_t pos)
         gtk_button_new_from_icon_name("edit-delete", GTK_ICON_SIZE_DND));
 
     // set image widget and reset inital image
-    cb_set_combo_position_image(imagePos, pos);
+    cb_set_combo_position_image(imagePos, *ingPos);
 
     // extract entries from combo boxes, display default text and disable
     // editable
@@ -69,13 +69,13 @@ static GtkBox *add_ing_selection(const ComboPositions_t pos)
 
     // connect callback handler IDs
     g_signal_connect(btnResetPos, "clicked",
-                     G_CALLBACK(cb_on_reset_btn_clicked), GINT_TO_POINTER(pos));
+                     G_CALLBACK(cb_on_reset_btn_clicked), (gpointer)ingPos);
 
     // TODO: Pos one is reserved for pressure pumps
     const gulong id = g_signal_connect(comboPos, "changed",
                                        G_CALLBACK(cb_on_combo_position_changed),
-                                       GINT_TO_POINTER(pos));
-    cb_set_combo_position_callback(comboPos, pos, id);
+                                       (gpointer)ingPos);
+    cb_set_combo_position_callback(comboPos, *ingPos, id);
 
     gtk_widget_set_size_request(GTK_WIDGET(comboPos), COMBO_WIDTH,
                                 COMBO_HEIGHT);
@@ -94,13 +94,24 @@ static GtkBox *add_ing_selection(const ComboPositions_t pos)
 }
 
 // populate stack page one with widgets for ingredient selection
-// TODO: Add pressure pumps
 static void populateStackPage_One(GtkStack *mainStack)
 {
-    // TODO: Add pressure pump row
-    static const GridPos_t gridPositions[PAGES_COMBO_POS_NUM] = {
-        {0, 0}, // < "pos one" pressure pump
-        {0, 0}, {1, 0}, {2, 0}, {0, 1}, {1, 1}, {2, 1},
+    static const GridPos_t gridPositions[MAX_INGREDIENT_POSITIONS] = {
+        {0, 0}, {1, 0}, {2, 0}, // < "pos one" pressure pump 1 - 3
+        {0, 1}, {1, 1}, {2, 1}, // < positions 1 - 3
+        {0, 2}, {1, 2}, {2, 2}  // < positions 4 - 6
+    };
+
+    static const IngPos_t selectPositions[MAX_INGREDIENT_POSITIONS] = {
+        {PAGES_COMBO_POS_ONE, PUMP_POS_ONE},
+        {PAGES_COMBO_POS_ONE, PUMP_POS_TWO},
+        {PAGES_COMBO_POS_ONE, PUMP_POS_THREE},
+        {PAGES_COMBO_POS_TWO, PUMP_POS_INVALID},
+        {PAGES_COMBO_POS_THREE, PUMP_POS_INVALID},
+        {PAGES_COMBO_POS_FOUR, PUMP_POS_INVALID},
+        {PAGES_COMBO_POS_FIVE, PUMP_POS_INVALID},
+        {PAGES_COMBO_POS_SIX, PUMP_POS_INVALID},
+        {PAGES_COMBO_POS_SEVEN, PUMP_POS_INVALID},
     };
 
     GtkBox *pageOneBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -116,12 +127,10 @@ static void populateStackPage_One(GtkStack *mainStack)
     gtk_grid_set_column_spacing(selectionGrid, GRID_SPACING);
     gtk_grid_set_row_spacing(selectionGrid, GRID_SPACING);
 
-    // TODO: Add pressure pump row, start at pos two for now
-    for(ComboPositions_t pos = PAGES_COMBO_POS_TWO; pos < PAGES_COMBO_POS_NUM;
-        pos++)
+    for(int i = 0; i < MAX_INGREDIENT_POSITIONS; i++)
     {
-        GtkBox *boxPos = add_ing_selection(pos);
-        const GridPos_t gridPos = gridPositions[pos];
+        GtkBox *boxPos = add_ing_selection(&selectPositions[i]);
+        const GridPos_t gridPos = gridPositions[i];
 
         gtk_grid_attach(selectionGrid, GTK_WIDGET(boxPos), gridPos.col,
                         gridPos.row, 1, 1);
@@ -130,7 +139,7 @@ static void populateStackPage_One(GtkStack *mainStack)
     // move grid to horizontal center, vertical center achieved through padding
     // of box
     gtk_widget_set_halign(GTK_WIDGET(selectionGrid), GTK_ALIGN_CENTER);
-    gtk_box_pack_start(pageOneBox, GTK_WIDGET(selectionGrid), TRUE, TRUE, 100);
+    gtk_box_pack_start(pageOneBox, GTK_WIDGET(selectionGrid), TRUE, TRUE, 10);
 
     gtk_stack_add_titled(mainStack, GTK_WIDGET(pageOneBox), "Page_One",
                          "Positionen");

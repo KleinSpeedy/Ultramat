@@ -75,7 +75,9 @@ static int hello_there_handler(const Response *resp)
     if(!resp)
         return -1;
 
-    gdk_threads_add_idle(cb_cmd_hello_there_done, (gpointer)resp);
+    // copy argument, free in callback
+    Response *data = g_memdup2(resp, sizeof(*resp));
+    gdk_threads_add_idle(cb_cmd_hello_there_done, (gpointer)data);
     return 0;
 }
 

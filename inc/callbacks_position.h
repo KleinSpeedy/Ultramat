@@ -5,14 +5,11 @@
 #include <gtk/gtk.h>
 #include <stdint.h>
 
-/*
- * ComboBox positions on page one, used for callbacks and keeping track of
- * ingredient positions
- */
+// vertical position that can be approached on the X axis
 typedef enum
 {
     PAGES_COMBO_POS_INVALID = -1,
-    PAGES_COMBO_POS_ONE, // For pressure pumps, future functionality
+    PAGES_COMBO_POS_ONE, // For pressure pumps, 3 ingredients at pos one
     PAGES_COMBO_POS_TWO,
     PAGES_COMBO_POS_THREE,
     PAGES_COMBO_POS_FOUR,
@@ -23,16 +20,40 @@ typedef enum
     PAGES_COMBO_POS_NUM
 } ComboPositions_t;
 
+// which pump should be used, 1 - 3
+typedef enum
+{
+    PUMP_POS_INVALID = -1,
+    PUMP_POS_ONE, // use this as offset for array indexing, start at 0
+    PUMP_POS_TWO,
+    PUMP_POS_THREE,
+
+    PUMP_POS_NUM
+} ePumpPos_t;
+
+// pos 1 has 3 different drinks as its pumps
+#define MAX_INGREDIENT_POSITIONS (PAGES_COMBO_POS_NUM + PUMP_POS_NUM - 1)
+
+/*
+ * Positions include 7 approchable positions on the X axis
+ * Position one has PUMP_POS_NUM different selectable ingredients
+ */
+typedef struct ingredient_pos
+{
+    ComboPositions_t xPos; // x position
+    ePumpPos_t pumpPos;    // which pump if pos one is approached
+} IngPos_t;
+
 // Get combo position label string for specific position
-const char *cb_get_combo_pos_string(const ComboPositions_t pos);
+const char *cb_get_combo_pos_string(const IngPos_t ingPos);
 
 /* ========== CallbackID setter for GTK GUI ========== */
 
 /**
  * @brief Set callback ID of ingredient postion combo widgets
  */
-void cb_set_combo_position_callback(GtkComboBox *comboBox, ComboPositions_t pos,
-                                    uint64_t id);
+void cb_set_combo_position_callback(GtkComboBox *comboBox,
+                                    const IngPos_t ingPos, gulong id);
 
 /**
  * @brief set callback ID and button pointer for manual x position toggle
@@ -63,8 +84,8 @@ void cb_set_button_order_callback_id(uint64_t id);
 void cb_set_button_order_widget(GtkToggleButton *widget);
 // setter for progress bar widget
 void cb_set_progress_bar_widget(GtkProgressBar *widget);
-
-void cb_set_combo_position_image(GtkImage *img, const ComboPositions_t pos);
+// set the image widget for the ingredient position
+void cb_set_combo_position_image(GtkImage *img, const IngPos_t ingPos);
 
 /* ========== GTK Widget event callbacks ========== */
 
@@ -128,6 +149,6 @@ gboolean cb_cmd_move_y_done(gpointer data);
 
 /* Util functions */
 
-ComboPositions_t cb_get_position_by_id(const uint8_t id);
+bool cb_get_position_by_id(const uint8_t id, IngPos_t *ingPos);
 
 #endif // CALLBACKS_POSITION_H

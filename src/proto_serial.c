@@ -20,7 +20,7 @@ static serial_t *ser_ = NULL;
 
 // TODO: Set this differently
 #ifndef SERIAL_PORT
-#define SERIAL_PORT "/dev/ttyACM0"
+#define SERIAL_PORT "/tmp/ttyBase"
 #endif
 
 #define SERIAL_BAUD 115200
@@ -85,15 +85,30 @@ int proto_comms_start_new_mixing(const Recipe *rec)
     for(uint16_t i = 0; i < rec->ingCount; ++i)
     {
         const IdCountPair pair = rec->ingPairs[i];
-        const ComboPositions_t pos = cb_get_position_by_id(pair.id);
-        if(pos == PAGES_COMBO_POS_INVALID)
+        IngPos_t ingPos = {0};
+        if(!cb_get_position_by_id(pair.id, &ingPos))
             return -1;
 
         Message out = Message_init_zero;
         out.type = CmdType_RECIPE_STEP;
         out.which_payload = Message_step_tag;
-        out.payload.step.xPos = (PositionX)(pos + 1);
-        out.payload.step.yCount = pair.count;
+
+        if(ingPos.xPos == PAGES_COMBO_POS_ONE &&
+           ingPos.pumpPos != PUMP_POS_INVALID)
+        {
+            out.payload.step.xPos = PositionX_ONE;
+            out.payload.step.has_pump = TRUE;
+            out.payload.step.pump.pumpPos = ingPos.pumpPos;
+            // TODO: How many seconds should we wait??
+            out.payload.step.pump.seconds = 5;
+        }
+        else
+        {
+            out.payload.step.xPos = (PositionX)(ingPos.xPos + 1);
+            out.payload.step.has_yCount = TRUE;
+            out.payload.step.yCount = pair.count;
+            out.payload.step.has_pump = FALSE;
+        }
 
         const int ret = message_handler_add_outgoing(&out);
         if(ret < 0)
@@ -104,7 +119,9 @@ int proto_comms_start_new_mixing(const Recipe *rec)
     final.type = CmdType_RECIPE_STEP;
     final.which_payload = Message_step_tag;
     final.payload.step.xPos = PositionX_FINAL;
+    final.payload.step.has_yCount = TRUE;
     final.payload.step.yCount = 0;
+    final.payload.step.has_pump = FALSE;
     if(message_handler_add_outgoing(&final) < 0)
         return -1;
 
