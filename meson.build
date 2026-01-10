@@ -13,7 +13,7 @@ include_dirs=[
 git = find_program('git', required: true)
 git_res = run_command(git, 'describe', '--tags', '--dirty', '--match=v*', check: true)
 
-vers_str = git_res.stdout().split('-')
+vers_str = git_res.stdout().strip().split('-')
 # get major, minor, bugfix, provide fallback version
 tag = vers_str.get(0, 'v0.0.1').strip('v').split('.')
 # configure version header file
