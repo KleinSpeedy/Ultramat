@@ -5,6 +5,7 @@
  */
 
 #include "drinks.h"
+#include "glib.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,8 +13,25 @@
 
 #define BUFFER_SIZE 256
 
-static const char *const ingFileStr = "res/ingredients.txt";
-static const char *const recFileStr = "res/recipes.txt";
+// Helper function to get the absolute path to a resource
+const char *drinks_io_get_resource_path(const char *filename)
+{
+    if(!filename)
+    {
+        return NULL;
+    }
+
+    const char *base_dir = g_getenv("ULTRAMAT_RES_DIR");
+
+    if(base_dir != NULL)
+    {
+        return g_build_filename(base_dir, filename, NULL);
+    }
+    else
+    {
+        return g_build_filename("res", filename, NULL);
+    }
+}
 
 static const char *const SEPARATOR = ";";
 
@@ -135,10 +153,12 @@ VLArray_t *drinks_io_read_ingredients(void)
     vla_init(&ingArray, sizeof(Ingredient));
     char inputBuffer[BUFFER_SIZE] = {0};
 
-    FILE *fp = fopen(ingFileStr, "r");
+    const char *ingFile = drinks_io_get_resource_path("ingredients.txt");
+    FILE *fp = fopen(ingFile, "r");
     if(fp == NULL)
     {
         // TODO: Error log
+        g_free((gpointer)ingFile);
         return NULL;
     }
 
@@ -150,12 +170,14 @@ VLArray_t *drinks_io_read_ingredients(void)
         if(vla_append(&ingArray, &ing) != 0)
         {
             fclose(fp);
+            g_free((gpointer)ingFile);
             return NULL;
         }
         memset(inputBuffer, 0, BUFFER_SIZE);
     }
 
     fclose(fp);
+    g_free((gpointer)ingFile);
     return &ingArray;
 }
 
@@ -180,10 +202,12 @@ VLArray_t *drinks_io_read_recipes(void)
     vla_init(&recArray, sizeof(Recipe));
     char input_buffer[BUFFER_SIZE] = {0};
 
-    FILE *fp = fopen(recFileStr, "r");
+    const char *recFile = drinks_io_get_resource_path("recipes.txt");
+    FILE *fp = fopen(recFile, "r");
     if(fp == NULL)
     {
         // TODO: Error log
+        g_free((gpointer)recFile);
         return NULL;
     }
 
@@ -196,12 +220,14 @@ VLArray_t *drinks_io_read_recipes(void)
         {
             // TODO: Error log, what about allocated objects?
             fclose(fp);
+            g_free((gpointer)recFile);
             return NULL;
         }
         memset(input_buffer, 0, sizeof(input_buffer));
     }
 
     fclose(fp);
+    g_free((gpointer)recFile);
     return &recArray;
 }
 

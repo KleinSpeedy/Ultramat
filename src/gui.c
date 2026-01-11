@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "callbacks_position.h"
 #include "checks.h"
+#include "drinks.h"
 #include "pages.h"
 
 #include <gtk/gtk.h>
@@ -27,7 +28,9 @@ static GtkWindow *mainWindow_;
 void gui_thread(void)
 {
     GtkCssProvider *css_provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(css_provider, "res/style.css", NULL);
+    const char *cssPath = drinks_io_get_resource_path("style.css");
+    gtk_css_provider_load_from_path(css_provider, cssPath, NULL);
+    g_free((gpointer)cssPath);
 
     /* Create containers and navigation widgets */
 

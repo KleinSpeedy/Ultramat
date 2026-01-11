@@ -17,9 +17,9 @@ static GtkListStore *recListStore = NULL;
 
 // NOTE: This list has to have the same order as ingredients.txt
 static const char *const ICON_PATHS[] = {
-    "res/img/cmp_osaft.png", "res/img/cmp_asaft.png", NULL,
-    "res/img/cmp_rum.png",   "res/img/cmp_gin.png",   "res/img/cmp_vodka.png",
-    "res/img/cmp_tonic.png", "res/img/cmp_soda.png"};
+    "img/cmp_osaft.png", "img/cmp_asaft.png", NULL,
+    "img/cmp_rum.png",   "img/cmp_gin.png",   "img/cmp_vodka.png",
+    "img/cmp_tonic.png", "img/cmp_soda.png"};
 
 static GdkPixbuf *load_icon(const char *filename)
 {
@@ -29,7 +29,6 @@ static GdkPixbuf *load_icon(const char *filename)
 
     if(!filename)
     {
-        g_info("No image needed\n");
         return gtk_icon_theme_load_icon(theme, "image-missing", 128, 0, NULL);
     }
     pixbuf =
@@ -52,7 +51,9 @@ static void lists_add_ingredients(VLArray_t *ingArray)
 
         const gchar *name = g_strdup(ing->name);
         const guint32 id = ing->id;
-        GdkPixbuf *icon = load_icon(ICON_PATHS[i]);
+
+        const char *path = drinks_io_get_resource_path(ICON_PATHS[i]);
+        GdkPixbuf *icon = load_icon(path);
 
         GtkTreeIter iter;
         gtk_list_store_append(ingListStore, &iter);
@@ -60,6 +61,7 @@ static void lists_add_ingredients(VLArray_t *ingArray)
                            ING_COLUMN_ID, id, ING_COLUMN_ICON, icon,
                            -1); // terminate
 
+        g_free((gpointer)path);
         g_free((gpointer)name);
         g_object_unref(icon);
     }

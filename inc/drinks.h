@@ -68,4 +68,10 @@ VLArray_t *drinks_io_read_recipes(void);
  */
 void drinks_io_recipe_custom_free(void *data);
 
+/**
+ * @brief get the full path for ressources using ENV variable
+ * NOTE: Dont load objects, use g_ressource compile instead
+ */
+const char *drinks_io_get_resource_path(const char *filename);
+
 #endif // DRINKS_H

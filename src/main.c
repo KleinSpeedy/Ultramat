@@ -9,14 +9,17 @@ int main(int argc, char **argv)
 {
     // start by initializing GUI-GTK thread
     if(!gtk_init_check(&argc, &argv))
+    {
+        fprintf(stderr, "Error init check gtk\n");
         return EXIT_FAILURE;
+    }
 
     // Read ingredients and recipes from files
     VLArray_t *ingArray = drinks_io_read_ingredients();
     VLArray_t *recArray = drinks_io_read_recipes();
     if(ingArray == NULL || recArray == NULL)
     {
-        // TODO: Error log
+        fprintf(stderr, "Error reading recipes or ingredients\n");
         return EXIT_FAILURE;
     }
 
