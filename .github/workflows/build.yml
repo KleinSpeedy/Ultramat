@@ -30,7 +30,8 @@ jobs:
       - name: Build ${{ matrix.output_name }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y git build-essential pkg-config libgtk-3-dev ninja-build
+          sudo apt-get install -y git build-essential pkg-config libgtk-3-dev ninja-build \
+            flatpak flatpak-builder
           # Instal meson from pip for newer version
           pip3 install protobuf grpcio-tools meson
 
@@ -48,3 +49,14 @@ jobs:
           path: |
             build/${{ matrix.output_name }}
             res/
+      - name: Bundle flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: io.github.kleinspeedy.ultramat.yml
+          bundle: ultramat.flatpak
+          build-bundle: true
+          arch: ${{ matrix.arch }}
+          verbose: true
+          upload-artifact: true
+          repository-name: flathub
+          repository-url: https://flathub.org/repo/flathub.flatpakrepo

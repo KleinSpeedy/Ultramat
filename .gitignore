@@ -77,3 +77,11 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 __pycache__
+
+# Meson
+.wraplock
+
+# Flatpak
+repo
+builddir
+.flatpak-builder
