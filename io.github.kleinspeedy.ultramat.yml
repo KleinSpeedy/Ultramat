@@ -5,14 +5,12 @@ sdk: org.gnome.Sdk
 command: ultramat_ui
 
 finish-args:
-  # Permission to show windows (Wayland + X11 fallback)
+  - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
   # Access to serial devices
   - --device=all
-  # TODO: Enable when including updates
-  # Needs to talk to the network
-  #- --share=network
+  - --share=network
 
   # Set path to resource files
   - --env=ULTRAMAT_RES_DIR=/app/share/ultramat/res
@@ -25,7 +23,7 @@ modules:
       - mkdir -p /app/bin
       - mkdir -p /app/share/ultramat
       # Install app
-      - install -D build/Ultramat.x86_64 /app/bin/ultramat_ui
+      - install -D "build/Ultramat.$FLATPAK_ARCH" /app/bin/ultramat_ui
       - cp -r res /app/share/ultramat/
     sources:
       # This tells Flatpak to look at the directory where you run the build command

@@ -20,7 +20,7 @@ static serial_t *ser_ = NULL;
 
 // TODO: Set this differently
 #ifndef SERIAL_PORT
-#define SERIAL_PORT "/tmp/ttyBase"
+#define SERIAL_PORT "/dev/ttyACM0"
 #endif
 
 #define SERIAL_BAUD 115200
