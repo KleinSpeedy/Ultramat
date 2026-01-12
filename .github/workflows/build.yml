@@ -1,0 +1,61 @@
+name: Build Ultramat application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            os: ubuntu22.04
+            output_name: Ultramat.x86_64
+          - arch: aarch64
+            os: ubuntu-22.04-arm
+            output_name: Ultramat.aarch64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Build ${{ matrix.output_name }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential pkg-config libgtk-3-dev ninja-build \
+            flatpak flatpak-builder
+          # Instal meson from pip for newer version
+          pip3 install protobuf grpcio-tools meson
+
+          # Mark the current directory as safe for git
+          git config --global --add safe.directory '*'
+          # setup and build
+          meson setup build
+          meson compile -C build
+          file build/${{ matrix.output_name }}
+
+      - name: Bundle flatpak
+        run: |
+          # Add flatpak flathub remote
+          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          # Build application
+          flatpak-builder --force-clean --user --install-deps-from=flathub --repo=repo builddir io.github.kleinspeedy.ultramat.yml
+          # Build bundle
+          flatpak build-bundle repo ultramat.${{ matrix.arch }}.flatpak io.github.kleinspeedy.ultramat.yml
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ultramat_ui.${{ matrix.arch }}
+          path: |
+            ultramat.${{ matrix.arch }}.flatpak
+            build/${{ matrix.output_name }}
+            res/

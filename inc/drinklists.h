@@ -4,20 +4,23 @@
 #include "util/dynamic_array.h"
 
 // Column values for ingredients
-typedef enum {
+typedef enum
+{
     ING_COLUMN_NAME,
     ING_COLUMN_ID,
+    ING_COLUMN_ICON,
 
     ING_NUM_COLUMN
-}Ingredient_Columns;
+} Ingredient_Columns;
 
 // Column values for recipes
-typedef enum {
+typedef enum
+{
     REC_COLUMN_NAME,
     REC_COLUMN_ID,
 
     REC_NUM_COLUMNS
-}Recipe_Columns;
+} Recipe_Columns;
 
 // Create new Ingredients list store
 void lists_create_ingredient_store(VLArray_t *ingArray);

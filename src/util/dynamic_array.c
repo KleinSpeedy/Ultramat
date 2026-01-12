@@ -1,8 +1,8 @@
 #include "util/dynamic_array.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #define VLA_INITIAL_SIZE 5
@@ -18,10 +18,15 @@ void vla_init(VLArray_t *array, size_t elemSize)
     array->size = VLA_INITIAL_SIZE;
 }
 
-void vla_free(VLArray_t *array)
+void vla_free(VLArray_t *array, custom_free_t free_func)
 {
     if(!array)
         return;
+
+    if(free_func != NULL)
+    {
+        free_func(array->data);
+    }
 
     if(array->data != NULL)
     {
@@ -34,7 +39,7 @@ int vla_append(VLArray_t *array, void *data)
 {
     if(!array || !data)
         return 1;
-    
+
     if(array->size == array->used)
     {
         const size_t newSize = ceil(array->size * RESIZE_FACTOR);

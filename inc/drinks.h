@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#define MAX_NAME_LENGTH     128
+#define MAX_NAME_LENGTH 128
 
 typedef struct Ingredient
 {
@@ -63,4 +63,15 @@ Recipe *drinks_io_get_recipe_by_id(uint16_t id);
  */
 VLArray_t *drinks_io_read_recipes(void);
 
-#endif //DRINKS_H
+/**
+ * @brief free all dynamic allocted members of recipe structues
+ */
+void drinks_io_recipe_custom_free(void *data);
+
+/**
+ * @brief get the full path for ressources using ENV variable
+ * NOTE: Dont load objects, use g_ressource compile instead
+ */
+const char *drinks_io_get_resource_path(const char *filename);
+
+#endif // DRINKS_H

@@ -5,3 +5,4 @@ Rum;4;
 Gin;5;
 Vodka;6;
 Tonic;7;
+Soda;8;

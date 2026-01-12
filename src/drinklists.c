@@ -7,13 +7,41 @@
 #include "checks.h"
 #include "drinks.h"
 
-#include <stdio.h>
 #include <gtk/gtk.h>
+#include <stdio.h>
 
 // local ingredient list store holds all ingredient objects
 static GtkListStore *ingListStore = NULL;
 // local recipe list store holds all recipe objects
 static GtkListStore *recListStore = NULL;
+
+// NOTE: This list has to have the same order as ingredients.txt
+static const char *const ICON_PATHS[] = {
+    "img/cmp_osaft.png", "img/cmp_asaft.png", NULL,
+    "img/cmp_rum.png",   "img/cmp_gin.png",   "img/cmp_vodka.png",
+    "img/cmp_tonic.png", "img/cmp_soda.png"};
+
+static GdkPixbuf *load_icon(const char *filename)
+{
+    GError *error = NULL;
+    GdkPixbuf *pixbuf;
+    GtkIconTheme *theme = gtk_icon_theme_get_default();
+
+    if(!filename)
+    {
+        return gtk_icon_theme_load_icon(theme, "image-missing", 128, 0, NULL);
+    }
+    pixbuf =
+        gdk_pixbuf_new_from_file_at_scale(filename, 128, 128, TRUE, &error);
+
+    if(!pixbuf)
+    {
+        g_warning("Bild konnte nicht geladen werden: %s", error->message);
+        g_error_free(error);
+        return gtk_icon_theme_load_icon(theme, "image-missing", 128, 0, NULL);
+    }
+    return pixbuf;
+}
 
 static void lists_add_ingredients(VLArray_t *ingArray)
 {
@@ -21,16 +49,21 @@ static void lists_add_ingredients(VLArray_t *ingArray)
     {
         Ingredient *ing = vla_get_elem_at(ingArray, i);
 
-        //Ingredient *ing = ingArray->get(ingArray, i);
         const gchar *name = g_strdup(ing->name);
         const guint32 id = ing->id;
 
+        const char *path = drinks_io_get_resource_path(ICON_PATHS[i]);
+        GdkPixbuf *icon = load_icon(path);
+
         GtkTreeIter iter;
         gtk_list_store_append(ingListStore, &iter);
-        gtk_list_store_set(ingListStore, &iter,
-                            ING_COLUMN_NAME, name,
-                            ING_COLUMN_ID, id,
-                            -1); // terminate
+        gtk_list_store_set(ingListStore, &iter, ING_COLUMN_NAME, name,
+                           ING_COLUMN_ID, id, ING_COLUMN_ICON, icon,
+                           -1); // terminate
+
+        g_free((gpointer)path);
+        g_free((gpointer)name);
+        g_object_unref(icon);
     }
 }
 
@@ -45,10 +78,11 @@ static void lists_add_recipes(VLArray_t *recArray)
 
         GtkTreeIter iter;
         gtk_list_store_append(recListStore, &iter);
-        gtk_list_store_set(recListStore, &iter,
-                            REC_COLUMN_NAME, name,
-                            REC_COLUMN_ID, id,
-                            -1); // terminate
+        gtk_list_store_set(recListStore, &iter, REC_COLUMN_NAME, name,
+                           REC_COLUMN_ID, id,
+                           -1); // terminate
+
+        g_free((gpointer)name);
     }
 }
 
@@ -66,20 +100,16 @@ void *lists_recipe_store(void)
 
 void lists_create_ingredient_store(VLArray_t *ingArray)
 {
-    ingListStore = gtk_list_store_new(
-            ING_NUM_COLUMN,
-            G_TYPE_STRING,
-            G_TYPE_UINT);
+    ingListStore = gtk_list_store_new(ING_NUM_COLUMN, G_TYPE_STRING,
+                                      G_TYPE_UINT, G_TYPE_OBJECT);
     CHECK_WIDGET(ingListStore, "ingredients list store");
     lists_add_ingredients(ingArray);
 }
 
 void lists_create_recipe_store(VLArray_t *recArray)
 {
-    recListStore = gtk_list_store_new(
-            REC_NUM_COLUMNS,
-            G_TYPE_STRING,
-            G_TYPE_UINT);
+    recListStore =
+        gtk_list_store_new(REC_NUM_COLUMNS, G_TYPE_STRING, G_TYPE_UINT);
     CHECK_WIDGET(recListStore, "Recipe List Store");
     lists_add_recipes(recArray);
 }

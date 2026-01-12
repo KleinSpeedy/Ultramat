@@ -6,6 +6,7 @@ subdir('util')
 
 source_files=[
   files('callbacks_position.c'),
+  files('callbacks_info.c'),
   files('command_handler.c'),
   files('drinklists.c'),
   files('drinks.c'),
@@ -13,6 +14,6 @@ source_files=[
   files('main.c'),
   files('message_handler.c'),
   files('pages.c'),
-  files('serialcomms.c'),
+  files('proto_serial.c'),
   util_files
 ]

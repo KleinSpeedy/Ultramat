@@ -1,7 +1,7 @@
-#include "drinks.h"
 #include "drinklists.h"
-#include "util/dynamic_array.h"
+#include "drinks.h"
 #include "gui.h"
+#include "util/dynamic_array.h"
 
 #include <gtk/gtk.h>
 
@@ -9,14 +9,17 @@ int main(int argc, char **argv)
 {
     // start by initializing GUI-GTK thread
     if(!gtk_init_check(&argc, &argv))
+    {
+        fprintf(stderr, "Error init check gtk\n");
         return EXIT_FAILURE;
+    }
 
     // Read ingredients and recipes from files
     VLArray_t *ingArray = drinks_io_read_ingredients();
     VLArray_t *recArray = drinks_io_read_recipes();
     if(ingArray == NULL || recArray == NULL)
     {
-        // TODO: Error log
+        fprintf(stderr, "Error reading recipes or ingredients\n");
         return EXIT_FAILURE;
     }
 
@@ -25,9 +28,10 @@ int main(int argc, char **argv)
 
     gui_thread();
 
-    vla_free(ingArray);
-    // TODO: Recipes have dynamic allocations themselves, provide custom free callback
-    vla_free(recArray);
+    vla_free(ingArray, NULL);
+    // TODO: Recipes have dynamic allocations themselves, provide custom free
+    // callback
+    vla_free(recArray, drinks_io_recipe_custom_free);
 
     return 0;
 }

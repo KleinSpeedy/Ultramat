@@ -1,6 +1,5 @@
 #!/bin/sh
 
-EXE=$(pwd)/build_dbg/Ultramat
 GLIB_SUPP=/usr/share/glib-2.0/valgrind/glib.supp
 GTK_SUPP=/usr/share/gtk-3.0/valgrind/gtk.supp
 
@@ -10,7 +9,7 @@ error()
     exit 1
 }
 
-if [ ! -f $EXE ]; then
+if [ ! -f $1 ]; then
     error "Could not find debug executable"
 fi
 
@@ -25,4 +24,4 @@ fi
 valgrind --leak-check=full --track-origins=yes \
     --suppressions=$GLIB_SUPP \
     --suppressions=$GTK_SUPP \
-    $EXE
+    $1
