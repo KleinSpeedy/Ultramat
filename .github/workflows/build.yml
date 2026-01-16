@@ -2,6 +2,7 @@ name: Build Ultramat application
 
 on:
   push:
+    tags: '*'
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
@@ -15,7 +16,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            os: ubuntu22.04
+            os: ubuntu-22.04
             output_name: Ultramat.x86_64
           - arch: aarch64
             os: ubuntu-22.04-arm
@@ -41,6 +42,7 @@ jobs:
           meson setup build
           meson compile -C build
           file build/${{ matrix.output_name }}
+          tar cvf ultramat_ui.${{ matrix.arch }}.tar res/ build/${{ matrix.output_name }}
 
       - name: Bundle flatpak
         run: |
@@ -51,11 +53,10 @@ jobs:
           # Build bundle
           flatpak build-bundle repo ultramat.${{ matrix.arch }}.flatpak io.github.kleinspeedy.ultramat.yml
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
         with:
-          name: ultramat_ui.${{ matrix.arch }}
-          path: |
+          files: |
             ultramat.${{ matrix.arch }}.flatpak
-            build/${{ matrix.output_name }}
-            res/
+            ultramat_ui.${{ matrix.arch }}.tar

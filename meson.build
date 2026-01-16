@@ -11,7 +11,8 @@ include_dirs=[
 
 # retrieve app version information from git tag
 git = find_program('git', required: true)
-git_res = run_command(git, 'describe', '--tags', '--dirty', '--match=v*', check: true)
+# returns format: tag-num_commits-hash
+git_res = run_command(git, 'describe', '--tags', '--long', '--match=v*', check: true)
 
 vers_str = git_res.stdout().strip().split('-')
 # get major, minor, bugfix, provide fallback version
