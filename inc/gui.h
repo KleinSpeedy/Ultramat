@@ -14,9 +14,9 @@ void gui_show_error_modal(const char *errorStr);
 
 void gui_show_info_modal(const char *infoStr);
 
-#define WIN_WIDTH           1280
-#define WIN_HEIGHT          800
-#define TRANSITION_SPEED    250 /* ms */
-#define RESET_TEXT          "Zutat auswählen!"
+#define WIN_WIDTH 1280
+#define WIN_HEIGHT 800
+#define TRANSITION_SPEED 250 /* ms */
+#define RESET_TEXT "Zutat auswählen!"
 
 #endif // GUI_H

@@ -1,7 +1,7 @@
 #include "callbacks_position.h"
 #include "callbacks_info.h"
-#include "drinklists.h"
-#include "drinks.h"
+// #include "drinks.h"
+#include "drinks_db.h"
 #include "glib.h"
 #include "gtk/gtk.h"
 #include "gui.h"
@@ -102,6 +102,7 @@ static void cb_reset_combo_box(GtkComboBox *comboBox, gulong handlerId,
                        RESET_TEXT);
     cb_clear_pos_img(pos);
     cb_reset_ingredient(pos);
+    drinks_reset_ing_pos(pos);
     // don't forget to unblock signal again
     g_signal_handler_unblock(comboBox, handlerId);
 }
@@ -246,6 +247,7 @@ void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
         // set ingredient to position if it doesnt already exist
         if(!cb_ingredient_already_exists(selectedIng))
         {
+            drinks_set_ing_pos(id, pos);
             cb_set_ing_pos(selectedIng, pos);
             cb_set_pos_img(pixbuf, pos);
         }
@@ -265,6 +267,7 @@ void cb_on_combo_position_changed(GtkComboBox *comboBox, gpointer data)
     }
 
     // ingredient changed
+    drinks_set_ing_pos(id, pos);
     cb_set_ing_pos(selectedIng, pos);
     cb_set_pos_img(pixbuf, pos);
 }
@@ -334,7 +337,6 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
     }
     if(!gtk_widget_is_sensitive(GTK_WIDGET(button)))
     {
-        printf("order button not activated\n");
         return;
     }
 
@@ -367,10 +369,20 @@ void cb_on_recipe_order_toggle(GtkToggleButton *button, void *data)
     // Disable combo box and toggle button:
     gtk_widget_set_sensitive(GTK_WIDGET(recipeOrderButton_), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(recipeComboBox_), FALSE);
+    /*
     if(proto_comms_start_new_mixing(activeRecipe_) < 0)
     {
         printf("start mixing failed\n");
         // TODO: Reset everything here
+    }
+    */
+    if(!drinks_check_recipe(activeRecipe_->id))
+    {
+        printf("Recipe not available\n");
+    }
+    else
+    {
+        printf("Recipe available\n");
     }
 }
 

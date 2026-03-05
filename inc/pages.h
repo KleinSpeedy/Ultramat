@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 
 // create the different stack pages and populate them with content
-void createStackPages(GtkStack *mainStack);
+void create_stack_pages(GtkStack *mainStack, GtkListStore *recStore,
+                        GtkListStore *ingPumpStore, GtkListStore *ingLiqStore);
 
 #endif // PAGES_H

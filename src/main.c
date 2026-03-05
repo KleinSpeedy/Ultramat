@@ -23,8 +23,8 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    lists_create_ingredient_store(ingArray);
-    lists_create_recipe_store(recArray);
+    // lists_create_ingredient_store(ingArray);
+    // lists_create_recipe_store(recArray);
 
     gui_thread();
 

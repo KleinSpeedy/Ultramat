@@ -7,6 +7,7 @@
 #include "callbacks_position.h"
 #include "checks.h"
 #include "drinks.h"
+#include "drinks_db.h"
 #include "pages.h"
 
 #include <gtk/gtk.h>
@@ -27,6 +28,14 @@ static GtkWindow *mainWindow_;
 
 void gui_thread(void)
 {
+    /* Create list stores for recipes and ingredients */
+    GtkListStore *ingLiqStore = gtk_list_store_new(
+        ING_NUM_COLUMN, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_OBJECT);
+    GtkListStore *ingPumpStore = gtk_list_store_new(
+        ING_NUM_COLUMN, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_OBJECT);
+    GtkListStore *recStore =
+        gtk_list_store_new(REC_NUM_COLUMNS, G_TYPE_STRING, G_TYPE_UINT);
+
     GtkCssProvider *css_provider = gtk_css_provider_new();
     const char *cssPath = drinks_io_get_resource_path("style.css");
     gtk_css_provider_load_from_path(css_provider, cssPath, NULL);
@@ -49,7 +58,7 @@ void gui_thread(void)
     gtk_box_reorder_child(mainBox, GTK_WIDGET(mainStack), 1);
 
     /* Stack pages */
-    createStackPages(mainStack);
+    create_stack_pages(mainStack, recStore, ingLiqStore, ingPumpStore);
 
     /* apply style.css to window */
     gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),

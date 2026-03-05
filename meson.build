@@ -58,9 +58,11 @@ math_dep = cc.find_library('m', required: true)
 
 # Dependencies
 deps = [
-  dependency('gtk+-3.0'),
-  dependency('glib-2.0'),
-  dependency('gobject-2.0'),
+  dependency('gtk+-3.0', required: true),
+  dependency('glib-2.0', required: true),
+  dependency('gobject-2.0', required: true),
+  dependency('gobject-2.0', required: true),
+  dependency('sqlite3', required: true),
   math_dep,
   c_periphery_dep,
   nanopb_dep,

@@ -3,6 +3,7 @@
 
 #include "util/dynamic_array.h"
 
+/*
 // Column values for ingredients
 typedef enum
 {
@@ -21,6 +22,7 @@ typedef enum
 
     REC_NUM_COLUMNS
 } Recipe_Columns;
+*/
 
 // Create new Ingredients list store
 void lists_create_ingredient_store(VLArray_t *ingArray);

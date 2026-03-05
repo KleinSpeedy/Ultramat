@@ -4,7 +4,7 @@
 #include "callbacks_info.h"
 #include "callbacks_position.h"
 #include "checks.h"
-#include "drinklists.h"
+#include "drinks_db.h"
 #include "glib-object.h"
 #include "gui.h"
 #include "proto/commands.pb.h"
@@ -28,24 +28,32 @@ typedef struct grid_pos
 
 /* "private" function declaration */
 
-static void populateStackPage_One(GtkStack *mainStack);
-static void populateStackPage_Two(GtkStack *mainStack);
+static void populateStackPage_One(GtkStack *mainStack,
+                                  GtkListStore *ingLiqStore,
+                                  GtkListStore *ingPumpStore);
+static void populateStackPage_Two(GtkStack *mainStack, GtkListStore *recStore);
 static void populateStackPage_Three(GtkStack *mainStack);
 static void populateStackPage_Four(GtkStack *mainStack);
 
 /* function declaration */
 
-void createStackPages(GtkStack *mainStack)
+void create_stack_pages(GtkStack *mainStack, GtkListStore *recStore,
+                        GtkListStore *ingPumpStore, GtkListStore *ingLiqStore)
 {
-    populateStackPage_One(mainStack);
-    populateStackPage_Two(mainStack);
+    // Fill list stores
+    drinks_rec_list_store(recStore);
+    drinks_ing_pump_list_store(ingPumpStore);
+    drinks_ing_liquor_list_store(ingLiqStore);
+
+    populateStackPage_One(mainStack, ingLiqStore, ingPumpStore);
+    populateStackPage_Two(mainStack, recStore);
     populateStackPage_Three(mainStack);
     populateStackPage_Four(mainStack);
 }
 
-static GtkBox *add_ing_selection(const IngPos_t *ingPos)
+static GtkBox *add_ing_selection(const IngPos_t *ingPos, GtkListStore *ls)
 {
-    GtkTreeModel *ingListModel = GTK_TREE_MODEL(lists_ingredient_store());
+    GtkTreeModel *ingListModel = GTK_TREE_MODEL(ls);
     const gchar *posStr = cb_get_combo_pos_string(*ingPos);
 
     GtkBox *boxPos = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -94,7 +102,9 @@ static GtkBox *add_ing_selection(const IngPos_t *ingPos)
 }
 
 // populate stack page one with widgets for ingredient selection
-static void populateStackPage_One(GtkStack *mainStack)
+static void populateStackPage_One(GtkStack *mainStack,
+                                  GtkListStore *ingLiqStore,
+                                  GtkListStore *ingPumpStore)
 {
     static const GridPos_t gridPositions[MAX_INGREDIENT_POSITIONS] = {
         {0, 0}, {1, 0}, {2, 0}, // < "pos one" pressure pump 1 - 3
@@ -129,7 +139,12 @@ static void populateStackPage_One(GtkStack *mainStack)
 
     for(int i = 0; i < MAX_INGREDIENT_POSITIONS; i++)
     {
-        GtkBox *boxPos = add_ing_selection(&selectPositions[i]);
+        // list store depends on x position
+        GtkListStore *ls = selectPositions[i].xPos == PAGES_COMBO_POS_ONE
+                               ? ingPumpStore
+                               : ingLiqStore;
+
+        GtkBox *boxPos = add_ing_selection(&selectPositions[i], ls);
         const GridPos_t gridPos = gridPositions[i];
 
         gtk_grid_attach(selectionGrid, GTK_WIDGET(boxPos), gridPos.col,
@@ -152,7 +167,7 @@ static void populateStackPage_One(GtkStack *mainStack)
  * @param mainStack
  * @param recListStore
  */
-void populateStackPage_Two(GtkStack *mainStack)
+void populateStackPage_Two(GtkStack *mainStack, GtkListStore *recStore)
 {
     GtkBox *pageTwoBox = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     CHECK_WIDGET(pageTwoBox, "Page two box");
@@ -180,7 +195,7 @@ void populateStackPage_Two(GtkStack *mainStack)
 
     /* Use left side of page 2 for ordering a drink, pack them in Box */
 
-    GtkTreeModel *listModel = GTK_TREE_MODEL(lists_recipe_store());
+    GtkTreeModel *listModel = GTK_TREE_MODEL(recStore);
 
     GtkBox *boxComboOrder = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
     GtkLabel *orderHeaderlabel = GTK_LABEL(gtk_label_new("Drink auswählen:"));
